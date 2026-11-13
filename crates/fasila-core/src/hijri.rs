@@ -72,6 +72,21 @@ pub struct MonthStart {
     pub starts_on: Date,
 }
 
+/// Maximum distance, in days, between an announced month start and the base calendar.
+pub const MAX_ANNOUNCEMENT_DEVIATION_DAYS: i64 = 3;
+
+impl MonthStart {
+    /// Whether this announcement is within a few days of `calendar` and has a valid month.
+    pub fn is_plausible(&self, calendar: HijriCalendar) -> bool {
+        if !(1..=12).contains(&self.month) {
+            return false;
+        }
+        let idx = HijriDate::new(self.year, self.month, 1).month_index();
+        (self.starts_on.jdn() - calendar.month_start_jdn(idx)).abs()
+            <= MAX_ANNOUNCEMENT_DEVIATION_DAYS
+    }
+}
+
 /// A region's Hijri configuration.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(default))]
@@ -176,18 +191,30 @@ impl HijriProfile {
         self.base().month_start_jdn(idx) - self.day_adjustment as i64
     }
 
-    fn override_for(&self, idx: i64) -> Option<i64> {
+    /// Announced month starts as (month index, JDN), ignoring implausible entries.
+    ///
+    /// Sighting-based announcements differ from astronomical calendars by a day or two.
+    /// Anything further than [`MAX_ANNOUNCEMENT_DEVIATION_DAYS`] from the base calendar is a
+    /// data error (wrong year/month, typo) and would otherwise produce impossible dates, so it
+    /// is ignored rather than trusted.
+    fn valid_starts(&self) -> impl Iterator<Item = (i64, i64)> + '_ {
         self.month_starts
             .iter()
-            .find(|m| HijriDate::new(m.year, m.month, 1).month_index() == idx)
-            .map(|m| m.starts_on.jdn())
+            .filter(|m| m.is_plausible(self.base()))
+            .map(|m| {
+                (
+                    HijriDate::new(m.year, m.month, 1).month_index(),
+                    m.starts_on.jdn(),
+                )
+            })
+    }
+
+    fn override_for(&self, idx: i64) -> Option<i64> {
+        self.valid_starts().find(|(i, _)| *i == idx).map(|(_, j)| j)
     }
 
     fn has_override_in(&self, lo: i64, hi: i64) -> bool {
-        self.month_starts.iter().any(|m| {
-            let i = HijriDate::new(m.year, m.month, 1).month_index();
-            i >= lo && i <= hi
-        })
+        self.valid_starts().any(|(i, _)| i >= lo && i <= hi)
     }
 
     /// Effective JDN on which month `idx` starts, honouring announced month starts.
@@ -206,14 +233,7 @@ impl HijriProfile {
     /// Start of month `idx` chained forward from the latest announcement before it.
     fn chained_start(&self, idx: i64) -> i64 {
         let anchor = self
-            .month_starts
-            .iter()
-            .map(|m| {
-                (
-                    HijriDate::new(m.year, m.month, 1).month_index(),
-                    m.starts_on.jdn(),
-                )
-            })
+            .valid_starts()
             .filter(|(i, _)| *i < idx)
             .max_by_key(|(i, _)| *i);
         let Some((mut cur_idx, mut cur_start)) = anchor else {
@@ -326,6 +346,21 @@ pub const MONTH_NAMES_EN: [&str; 12] = [
     "Dhu al-Hijjah",
 ];
 
+pub const MONTH_NAMES_FR: [&str; 12] = [
+    "Mouharram",
+    "Safar",
+    "Rabia al-Awal",
+    "Rabia ath-Thani",
+    "Joumada al-Oula",
+    "Joumada ath-Thania",
+    "Rajab",
+    "Chaabane",
+    "Ramadan",
+    "Chawwal",
+    "Dhou al-Qi'da",
+    "Dhou al-Hijja",
+];
+
 pub const MONTH_NAMES_AR: [&str; 12] = [
     "محرم",
     "صفر",
@@ -397,6 +432,23 @@ mod tests {
         for m in 1..=12 {
             let l = p.month_length(1447, m);
             assert!(l == 29 || l == 30);
+        }
+    }
+
+    #[test]
+    fn implausible_announcement_is_ignored() {
+        let mut p = HijriProfile::new(HijriCalendar::UmmAlQura);
+        let base = p.to_hijri(Date::new(2026, 11, 20));
+        // 1 Rajab 1448 announced ~10 days late: a data error, must not yield day 40.
+        p.month_starts.push(MonthStart {
+            year: 1448,
+            month: 7,
+            starts_on: Date::new(2026, 12, 21),
+        });
+        assert_eq!(p.to_hijri(Date::new(2026, 11, 20)), base);
+        for jdn in Date::new(2026, 10, 1).jdn()..Date::new(2027, 3, 1).jdn() {
+            let h = p.to_hijri(Date::from_jdn(jdn));
+            assert!((1..=30).contains(&h.day), "{h}");
         }
     }
 
@@ -488,7 +540,11 @@ pub mod feed {
                 return 0;
             };
             let mut changed = 0;
-            for ms in &region.month_starts {
+            for ms in region
+                .month_starts
+                .iter()
+                .filter(|m| m.is_plausible(profile.calendar.0))
+            {
                 match profile
                     .month_starts
                     .iter_mut()

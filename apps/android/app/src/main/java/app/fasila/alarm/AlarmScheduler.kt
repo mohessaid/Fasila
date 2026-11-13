@@ -57,7 +57,7 @@ object AlarmScheduler {
         val repo = FasilaRepository.get(context)
         val prefs = repo.prefs.value
         val horizon = now + HORIZON_SECONDS
-        val start = repo.today().minusDays(1)
+        val start = repo.localToday().minusDays(1)
         val specs = mutableListOf<Spec>()
 
         for (day in repo.days(start, 4)) {

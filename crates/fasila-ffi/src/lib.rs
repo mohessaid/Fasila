@@ -312,10 +312,10 @@ pub fn time_key_name(key: String, lang: String) -> String {
 #[uniffi::export]
 pub fn hijri_month_name(month: u8, lang: String) -> String {
     let i = (month.clamp(1, 12) - 1) as usize;
-    if lang == "ar" {
-        hijri::MONTH_NAMES_AR[i]
-    } else {
-        hijri::MONTH_NAMES_EN[i]
+    match lang.as_str() {
+        "ar" => hijri::MONTH_NAMES_AR[i],
+        "fr" => hijri::MONTH_NAMES_FR[i],
+        _ => hijri::MONTH_NAMES_EN[i],
     }
     .to_string()
 }

@@ -65,6 +65,8 @@ class FasilaRepository private constructor(context: Context) {
     private val _items = MutableStateFlow(loadItems())
     val items: StateFlow<List<ScheduleItem>> = _items.asStateFlow()
 
+    @Volatile private var dayCache: Triple<FasilaEngine, LocalDate, List<DayInfo>>? = null
+
     /** A config together with the engine built from it. */
     data class Core(val config: FasilaConfig, val engine: FasilaEngine)
 
@@ -87,8 +89,6 @@ class FasilaRepository private constructor(context: Context) {
     val methods: List<MethodInfo> by lazy { calculationMethods() }
 
     // ---------------------------------------------------------------- snapshots
-
-    @Volatile private var dayCache: Triple<FasilaEngine, LocalDate, List<DayInfo>>? = null
 
     /** Yesterday, today and tomorrow (local civil dates in the configured zone). */
     fun daysAround(c: Core, date: LocalDate): List<DayInfo> {
@@ -134,7 +134,7 @@ class FasilaRepository private constructor(context: Context) {
         )
     }.getOrElse { emptyList() }
 
-    fun today(): LocalDate = Instant.now().atZone(core.value.config.zone).toLocalDate()
+    fun localToday(): LocalDate = Instant.now().atZone(core.value.config.zone).toLocalDate()
 
     // ---------------------------------------------------------------- config
 

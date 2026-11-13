@@ -42,7 +42,7 @@ data class FasilaConfig(val json: JsonObject) {
      */
     fun withMethod(methodId: String, methodParams: JsonObject?): FasilaConfig {
         if (methodParams == null) return set("params.method", methodId)
-        var p = methodParams
+        var p: JsonObject = methodParams
         for (k in USER_PARAM_KEYS) params[k]?.let { p = p.with(k, it) }
         return FasilaConfig(json.with("params", p.with("method", methodId)))
     }
