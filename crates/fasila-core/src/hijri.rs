@@ -397,3 +397,67 @@ mod tests {
         }
     }
 }
+
+/// The country announcement feed (`data/hijri/announcements.json`).
+#[cfg(feature = "serde")]
+pub mod feed {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+    pub struct Region {
+        pub calendar: HijriCalendar,
+        #[serde(default)]
+        pub source: String,
+        #[serde(default)]
+        pub month_starts: Vec<MonthStart>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+    pub struct Feed {
+        pub schema: u32,
+        #[serde(default)]
+        pub updated: String,
+        pub regions: BTreeMap<String, Region>,
+    }
+
+    impl Feed {
+        /// Merge a country's announcements into a profile (announcements replace same-month entries).
+        /// Returns how many month starts changed.
+        pub fn apply(&self, country: &str, profile: &mut HijriProfile) -> usize {
+            let Some(region) = self.regions.get(&country.to_ascii_uppercase()) else { return 0 };
+            let mut changed = 0;
+            for ms in &region.month_starts {
+                match profile.month_starts.iter_mut().find(|m| m.year == ms.year && m.month == ms.month) {
+                    Some(m) if m.starts_on == ms.starts_on => {}
+                    Some(m) => {
+                        m.starts_on = ms.starts_on;
+                        changed += 1;
+                    }
+                    None => {
+                        profile.month_starts.push(*ms);
+                        changed += 1;
+                    }
+                }
+            }
+            changed
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        #[test]
+        fn feed_parses_and_applies() {
+            let f: Feed = serde_json::from_str(include_str!("../../../data/hijri/announcements.json")).unwrap();
+            assert!(f.regions.contains_key("DZ"));
+            let f: Feed = serde_json::from_str(
+                r#"{"schema":1,"regions":{"DZ":{"calendar":"umm_al_qura","month_starts":[{"year":1445,"month":9,"starts_on":"2024-03-11"}]}}}"#,
+            )
+            .unwrap();
+            let mut p = HijriProfile::new(HijriCalendar::UmmAlQura);
+            assert_eq!(f.apply("dz", &mut p), 1);
+            assert_eq!(f.apply("DZ", &mut p), 0);
+        }
+    }
+}

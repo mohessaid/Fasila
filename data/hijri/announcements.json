@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "updated": "2026-11-13",
+  "notes": "Authoritative Hijri month starts per country (ISO-3166 alpha-2). Only add entries backed by an official announcement; include the source. Apps fetch this file, merge `month_starts` for the user's country into their Hijri profile, and fall back to the base calendar for months without an entry.",
+  "regions": {
+    "SA": { "calendar": "umm_al_qura", "source": "Umm al-Qura calendar (KACST)", "month_starts": [] },
+    "DZ": { "calendar": "umm_al_qura", "source": "Ministry of Religious Affairs and Wakfs (marw.dz) — crescent sighting", "month_starts": [] },
+    "MA": { "calendar": "umm_al_qura", "source": "Ministry of Habous and Islamic Affairs (habous.gov.ma)", "month_starts": [] },
+    "EG": { "calendar": "umm_al_qura", "source": "Dar al-Ifta al-Misriyyah", "month_starts": [] },
+    "TR": { "calendar": "umm_al_qura", "source": "Diyanet (computed calendar)", "month_starts": [] },
+    "GB": { "calendar": "umm_al_qura", "source": "Local moonsighting committees", "month_starts": [] }
+  }
+}

@@ -3,9 +3,8 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// A civil date in the proleptic Gregorian calendar.
+/// A civil date in the proleptic Gregorian calendar. Serialized as `"YYYY-MM-DD"`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Date {
     pub year: i32,
     pub month: u8,
@@ -141,6 +140,21 @@ impl Date {
 impl core::fmt::Display for Date {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{:04}-{:02}-{:02}", self.year, self.month, self.day)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for Date {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.collect_str(self)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for Date {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        let s = String::deserialize(d)?;
+        Date::parse_iso(&s).ok_or_else(|| serde::de::Error::custom(format!("invalid date {s:?}, expected YYYY-MM-DD")))
     }
 }
 

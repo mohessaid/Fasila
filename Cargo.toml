@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["crates/fasila-core", "crates/fasila-ffi"]
-default-members = ["crates/fasila-core", "crates/fasila-ffi"]
+members = ["crates/fasila-core", "crates/fasila-ffi", "crates/fasila-cli", "apps/desktop/src-tauri"]
+default-members = ["crates/fasila-core", "crates/fasila-ffi", "crates/fasila-cli"]
 
 [workspace.package]
 version = "0.1.0"

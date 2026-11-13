@@ -1,0 +1,25 @@
+[package]
+name = "fasila-desktop"
+description = "Fasila for Windows and Linux"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "fasila_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+fasila-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10"
+ureq = { version = "3", default-features = false, features = ["rustls"] }
