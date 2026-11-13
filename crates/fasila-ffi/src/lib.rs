@@ -336,7 +336,9 @@ pub fn calculation_methods() -> Vec<MethodInfo> {
 /// keeping the user's own choices (madhab, high-latitude/polar rules, rounding, adjustments).
 #[uniffi::export]
 pub fn method_params_json(method_id: String) -> Result<String, FasilaError> {
-    let m = core::Method::from_id(&method_id).ok_or(FasilaError::InvalidConfig { msg: format!("unknown method {method_id}") })?;
+    let m = core::Method::from_id(&method_id).ok_or(FasilaError::InvalidConfig {
+        msg: format!("unknown method {method_id}"),
+    })?;
     Ok(serde_json::to_string(&core::Params::for_method(m)).unwrap())
 }
 
