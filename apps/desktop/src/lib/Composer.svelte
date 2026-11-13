@@ -261,7 +261,7 @@
   .chip.strong { background: var(--glass-strong); font-weight: 600; }
   .dot { color: var(--ink-3); }
   .days { display: flex; gap: 6px; flex-wrap: wrap; }
-  .days .chip.on { background: var(--accent); color: #141a33; border-color: transparent; }
+  .days .chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
   .preview { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--glass-border); }
   .desc { font-weight: 600; font-size: 16px; }
   .actions { display: flex; gap: 8px; }

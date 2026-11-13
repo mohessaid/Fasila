@@ -114,7 +114,7 @@
   .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-border); pointer-events: none; transition: background 0.2s; }
   .switch span::after { content: ""; position: absolute; top: 2px; inset-inline-start: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: inset-inline-start 0.2s; }
   .switch input:checked + span { background: var(--accent); }
-  .switch input:checked + span::after { inset-inline-start: 18px; background: #141a33; }
+  .switch input:checked + span::after { inset-inline-start: 18px; background: var(--accent-ink); }
   .slots { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
   .slots li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--glass); }
   @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }

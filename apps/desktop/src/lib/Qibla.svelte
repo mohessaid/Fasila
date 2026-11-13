@@ -49,7 +49,6 @@
   .tick.major { stroke: var(--ink); stroke-width: 2; }
   .card-lbl { fill: var(--ink-2); font-size: 14px; font-weight: 600; }
   .card-lbl.north { fill: var(--accent); }
-  :global(:root[data-light="true"]) .card-lbl.north { fill: #b3261e; }
   .needle .head { fill: var(--accent); filter: drop-shadow(0 0 6px var(--accent)); }
   .needle .tail { fill: var(--ink-3); }
   .kaaba { fill: #141414; stroke: #d4af37; stroke-width: 2; }

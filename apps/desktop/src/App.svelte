@@ -19,11 +19,8 @@
     const r = document.documentElement;
     r.lang = app.lang;
     r.dir = app.dir;
-    r.dataset.light = String(app.sky.light);
     r.dataset.motion = app.prefs.reduce_motion ? "reduce" : "full";
-    r.style.setProperty("--sky-top", app.sky.top);
-    r.style.setProperty("--sky-bottom", app.sky.bottom);
-    r.style.setProperty("--accent", app.sky.accent);
+    app.skyColors.forEach((c, i) => r.style.setProperty(`--sky-${i}`, c));
     document.title = app.t.appName;
   });
 

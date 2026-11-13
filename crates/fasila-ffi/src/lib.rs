@@ -90,6 +90,14 @@ pub struct ParsedInfo {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct MoonInfo {
+    /// 0 = new, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter.
+    pub phase: f64,
+    pub illumination: f64,
+    pub waxing: bool,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct MethodInfo {
     pub id: String,
     pub name: String,
@@ -291,6 +299,17 @@ pub fn parse_sentence(
         item_json: serde_json::to_string(&item).unwrap(),
         description: schedule::describe_anchor(&p.start, &lang),
     })
+}
+
+/// Moon phase at a unix timestamp (for the night-sky illustration).
+#[uniffi::export]
+pub fn moon_phase(unix: i64) -> MoonInfo {
+    let p = core::moon_phase(unix);
+    MoonInfo {
+        phase: p.phase,
+        illumination: p.illumination,
+        waxing: p.waxing,
+    }
 }
 
 /// "15 min before Fajr" / "قبل الفجر بربع ساعة" / "15 min avant Fajr".

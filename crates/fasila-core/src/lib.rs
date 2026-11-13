@@ -13,6 +13,7 @@ pub mod config;
 pub mod date;
 pub mod hijri;
 pub mod method;
+pub mod moon;
 pub mod parse;
 pub mod prayer;
 pub mod schedule;
@@ -25,6 +26,7 @@ pub use method::{
     Adjustments, HighLatitudeRule, Madhab, Method, MidnightMethod, Params, PolarRule, Rounding,
     Twilight,
 };
+pub use moon::{moon_phase, MoonPhase};
 pub use prayer::{compute, qibla, Coordinates, PrayerTimes, TimeKey};
 pub use schedule::{
     Anchor, Day, End, Engine, Item, ItemKind, Occurrence, PrayerGuard, Recurrence, Slot,

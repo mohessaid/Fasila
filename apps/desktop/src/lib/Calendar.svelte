@@ -121,7 +121,6 @@
   .gd { font-size: 17px; font-weight: 600; }
   .hd { font-size: 11px; color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cell.hstart .hd { color: var(--accent); font-weight: 600; }
-  :global(:root[data-light="true"]) .cell.hstart .hd { color: var(--ink); }
   .occ-dot { position: absolute; top: 7px; inset-inline-end: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .side { display: grid; gap: 10px; }
   .side h2 { margin-bottom: 0; }

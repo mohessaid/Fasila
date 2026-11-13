@@ -1,6 +1,6 @@
 <script lang="ts">
   import { app } from "./state.svelte";
-  import DayDial from "./DayDial.svelte";
+  import CelestialHero from "./CelestialHero.svelte";
   import Icon from "./Icon.svelte";
   import type { TimeKey } from "./types";
 
@@ -29,7 +29,7 @@
           </div>
         {/if}
       </header>
-      <DayDial {day} />
+      <CelestialHero {day} />
       {#if day.times.polar_fallback}
         <p class="warn"><Icon name="info" size={14} /> {app.t.polar}</p>
       {/if}

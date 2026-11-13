@@ -70,7 +70,7 @@
   p { margin: 0; }
   .mark { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; border: 6px solid var(--ink-3); border-top-color: var(--accent); border-inline-end-color: var(--accent); transform: rotate(-20deg); }
   .langs { display: flex; gap: 8px; justify-content: center; }
-  .langs .on { background: var(--accent); color: #141a33; }
+  .langs .on { background: var(--accent); color: var(--accent-ink); }
   .results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
   .results button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; text-align: start; padding: 10px 14px; border-radius: 14px; background: var(--glass); border: 1px solid transparent; }
   .results button:hover { border-color: var(--glass-border); background: var(--glass-strong); }

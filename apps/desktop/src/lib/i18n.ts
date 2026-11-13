@@ -61,6 +61,10 @@ const en = {
     maghrib: "Maghrib", isha: "Isha", midnight: "Midnight", last_third: "Last third",
   } as Record<TimeKey, string>,
   jumuah: "Jumu'ah",
+  isNext: "{p} is next",
+  lunarDay: "Lunar day",
+  whiteDaysTitle: "Ayyām al-Bīḍ · White days",
+  lit: "lit",
   hijriMonths: ["Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani", "Jumada al-Ula", "Jumada al-Akhirah",
     "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qa'dah", "Dhu al-Hijjah"],
 };
@@ -127,6 +131,10 @@ const ar: Dict = {
     maghrib: "المغرب", isha: "العشاء", midnight: "منتصف الليل", last_third: "الثلث الأخير",
   },
   jumuah: "الجمعة",
+  isNext: "الصلاة القادمة: {p}",
+  lunarDay: "اليوم القمري",
+  whiteDaysTitle: "الأيام البيض",
+  lit: "مضاء",
   hijriMonths: ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة",
     "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"],
 };
@@ -179,6 +187,10 @@ const fr: Dict = {
   weekdays: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
   keys: { ...en.keys, sunrise: "Lever", sunset: "Coucher", midnight: "Minuit", last_third: "Dernier tiers" },
   jumuah: "Joumou'a",
+  isNext: "Prochaine : {p}",
+  lunarDay: "Jour lunaire",
+  whiteDaysTitle: "Jours blancs",
+  lit: "éclairée",
 };
 
 const DICTS: Record<Lang, Dict> = { en, ar, fr };

@@ -214,7 +214,7 @@
   .step { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass); }
   .seg { display: flex; border: 1px solid var(--glass-border); border-radius: 999px; overflow: hidden; width: max-content; }
   .seg button { background: transparent; border: 0; padding: 8px 14px; color: var(--ink); }
-  .seg button.on { background: var(--accent); color: #141a33; font-weight: 600; }
+  .seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
   .toggles { display: grid; gap: 8px; }
   .tog { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 14px; }
   .tog input { width: 18px; height: 18px; accent-color: var(--accent); }

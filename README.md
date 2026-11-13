@@ -50,12 +50,14 @@ See [docs/ACCURACY.md](docs/ACCURACY.md).
 
 ## Design
 
-Glass panes over a **living sky** whose colours follow the current prayer
-period (dawn, morning, Dhuhr, Asr, Maghrib, night), so the screen tells you
-where you are in the day before you read anything. The centre of the app is a **day
-dial**: the arc from Fajr to Isha with the *fasila*, the gap to the next prayer,
-lit up. Arabic is first-class: RTL layouts, a mirrored dial and Arabic-Indic
-numerals. See [docs/DESIGN.md](docs/DESIGN.md).
+The whole app sits on a dark **living sky**: a 4-stop gradient that blends from
+first light to night, pinned to the day's real prayer times, with 45 twinkling
+stars that fade out at dawn and return after Maghrib. Content sits on subtle glass
+with a single highlight line along the top edge. Today's hero is a **celestial
+scene**: the sun moves along its arc from sunrise to Maghrib, with Dhuhr and Asr
+marked on it. At night the moon appears in its real, computed phase, together with
+the Hijri lunar day and the White Days. Arabic is first-class: RTL layouts,
+Tajawal type and Arabic-Indic numerals. See [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Quick start
 

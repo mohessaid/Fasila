@@ -1,7 +1,8 @@
 import { api, newId } from "./api";
 import { dict, resolveLang, type Lang } from "./i18n";
 import { makeFormat } from "./format";
-import { periodAt, SKY } from "./sky";
+import { skyColors, skyState, starOpacity } from "./sky";
+import { invoke } from "@tauri-apps/api/core";
 import type { City, Config, Day, Item, MethodInfo, Occurrence, Prefs, TimeKey } from "./types";
 import { PRAYERS } from "./types";
 
@@ -35,8 +36,11 @@ class AppState {
     }),
   );
   todayDay = $derived(this.days[1]);
-  period = $derived(periodAt(this.todayDay?.times, this.now));
-  sky = $derived(SKY[this.period]);
+  skyState = $derived(skyState(this.days, this.now));
+  skyColors = $derived(skyColors(this.skyState.progress, this.skyState.timeOfDay));
+  stars = $derived(starOpacity(this.skyState.progress));
+  /** Moon phase from the Rust core, refreshed every 10 minutes. */
+  moon = $state<{ phase: number; illumination: number; waxing: boolean } | null>(null);
 
   /** Next obligatory prayer from now, looking into tomorrow. */
   next = $derived.by(() => {
@@ -83,6 +87,11 @@ class AppState {
 
   private async tick() {
     this.now = Math.floor(Date.now() / 1000);
+    if (this.now % 600 === 0 || !this.moon) {
+      invoke<{ phase: number; illumination: number; waxing: boolean }>("moon_phase", { at: this.now })
+        .then((m) => (this.moon = m))
+        .catch(() => {});
+    }
     // Roll over to a new day (local to the configured location).
     if (this.config && this.now % 30 === 0) {
       const t = await api.today();

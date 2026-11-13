@@ -289,6 +289,11 @@ fn refresh_hijri(state: Shared) -> Result<Value, String> {
 }
 
 #[tauri::command]
+fn moon_phase(at: i64) -> fasila_core::MoonPhase {
+    fasila_core::moon_phase(at)
+}
+
+#[tauri::command]
 fn test_notification(app: AppHandle, title: String, body: String) -> Result<(), String> {
     app.notification()
         .builder()
@@ -576,6 +581,7 @@ pub fn run() {
             free_slots,
             qibla,
             refresh_hijri,
+            moon_phase,
             test_notification
         ])
         .run(tauri::generate_context!())
