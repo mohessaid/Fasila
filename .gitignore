@@ -1,0 +1,12 @@
+target/
+node_modules/
+dist/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+.gradle/
+build/
+local.properties
+.idea/
+apps/apple/Generated/
+apps/android/app/src/main/jniLibs/
