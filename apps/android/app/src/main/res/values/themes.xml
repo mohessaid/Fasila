@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose draws everything; the window theme only covers the launch frame (night sky). -->
+    <style name="Theme.Fasila" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/sky_night_top</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="colorPrimary">@color/sky_night_accent</item>
+        <item name="colorAccent">@color/sky_night_accent</item>
+    </style>
+</resources>

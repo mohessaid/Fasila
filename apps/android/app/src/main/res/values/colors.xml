@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sky_night_top">#FF0B1026</color>
+    <color name="sky_night_bottom">#FF1B2350</color>
+    <color name="sky_night_accent">#FF8EA2FF</color>
+    <color name="sky_fajr_bottom">#FFC77D8E</color>
+    <color name="launcher_background">#FF0B1026</color>
+</resources>
