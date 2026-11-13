@@ -34,7 +34,11 @@ impl HijriDate {
         (self.year as i64 - 1) * 12 + (self.month as i64 - 1)
     }
     fn from_month_index(idx: i64, day: u8) -> HijriDate {
-        HijriDate { year: (idx.div_euclid(12) + 1) as i32, month: (idx.rem_euclid(12) + 1) as u8, day }
+        HijriDate {
+            year: (idx.div_euclid(12) + 1) as i32,
+            month: (idx.rem_euclid(12) + 1) as u8,
+            day,
+        }
     }
 }
 
@@ -46,7 +50,11 @@ impl core::fmt::Display for HijriDate {
 
 /// Base Hijri calendar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum HijriCalendar {
     /// Official Umm al-Qura calendar (Saudi Arabia), 1343–1500 AH, tabular outside that range.
     UmmAlQura,
@@ -152,7 +160,11 @@ impl HijriCalendar {
 
 impl HijriProfile {
     pub fn new(calendar: HijriCalendar) -> Self {
-        HijriProfile { calendar: HijriCalendarOpt(calendar), day_adjustment: 0, month_starts: Vec::new() }
+        HijriProfile {
+            calendar: HijriCalendarOpt(calendar),
+            day_adjustment: 0,
+            month_starts: Vec::new(),
+        }
     }
 
     fn base(&self) -> HijriCalendar {
@@ -196,7 +208,12 @@ impl HijriProfile {
         let anchor = self
             .month_starts
             .iter()
-            .map(|m| (HijriDate::new(m.year, m.month, 1).month_index(), m.starts_on.jdn()))
+            .map(|m| {
+                (
+                    HijriDate::new(m.year, m.month, 1).month_index(),
+                    m.starts_on.jdn(),
+                )
+            })
             .filter(|(i, _)| *i < idx)
             .max_by_key(|(i, _)| *i);
         let Some((mut cur_idx, mut cur_start)) = anchor else {
@@ -248,7 +265,11 @@ impl HijriProfile {
 
 /// Notable days in the Hijri year (for reminders and calendar badges).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Occasion {
     IslamicNewYear,
     Ashura,
@@ -328,13 +349,25 @@ mod tests {
     fn umm_al_qura_known_dates() {
         let p = HijriProfile::new(HijriCalendar::UmmAlQura);
         // 1 Muharram 1446 = 7 July 2024 (Umm al-Qura).
-        assert_eq!(p.to_hijri(Date::new(2024, 7, 7)), HijriDate::new(1446, 1, 1));
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 7, 7)),
+            HijriDate::new(1446, 1, 1)
+        );
         // 1 Ramadan 1445 = 11 March 2024.
-        assert_eq!(p.to_gregorian(HijriDate::new(1445, 9, 1)), Date::new(2024, 3, 11));
+        assert_eq!(
+            p.to_gregorian(HijriDate::new(1445, 9, 1)),
+            Date::new(2024, 3, 11)
+        );
         // 1 Shawwal 1445 (Eid al-Fitr) = 10 April 2024.
-        assert_eq!(p.to_gregorian(HijriDate::new(1445, 10, 1)), Date::new(2024, 4, 10));
+        assert_eq!(
+            p.to_gregorian(HijriDate::new(1445, 10, 1)),
+            Date::new(2024, 4, 10)
+        );
         // 10 Dhu al-Hijjah 1445 (Eid al-Adha) = 16 June 2024.
-        assert_eq!(p.to_gregorian(HijriDate::new(1445, 12, 10)), Date::new(2024, 6, 16));
+        assert_eq!(
+            p.to_gregorian(HijriDate::new(1445, 12, 10)),
+            Date::new(2024, 6, 16)
+        );
     }
 
     #[test]
@@ -357,7 +390,10 @@ mod tests {
             assert_eq!(p.to_gregorian(p.to_hijri(d)), d);
         }
         // Tabular epoch: 1/1/1 AH = 16 July 622 (Julian) = JDN 1948440.
-        assert_eq!(HijriCalendar::Tabular.from_jdn(1_948_440), HijriDate::new(1, 1, 1));
+        assert_eq!(
+            HijriCalendar::Tabular.from_jdn(1_948_440),
+            HijriDate::new(1, 1, 1)
+        );
         for m in 1..=12 {
             let l = p.month_length(1447, m);
             assert!(l == 29 || l == 30);
@@ -368,23 +404,46 @@ mod tests {
     fn day_adjustment() {
         let mut p = HijriProfile::new(HijriCalendar::UmmAlQura);
         p.day_adjustment = -1;
-        assert_eq!(p.to_hijri(Date::new(2024, 3, 12)), HijriDate::new(1445, 9, 1));
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 3, 12)),
+            HijriDate::new(1445, 9, 1)
+        );
     }
 
     #[test]
     fn announced_month_start_overrides_and_rechains() {
         let mut p = HijriProfile::new(HijriCalendar::UmmAlQura);
         // Suppose a country announced 1 Ramadan 1445 on 12 March 2024 (one day after Umm al-Qura).
-        p.month_starts.push(MonthStart { year: 1445, month: 9, starts_on: Date::new(2024, 3, 12) });
-        assert_eq!(p.to_hijri(Date::new(2024, 3, 11)), HijriDate::new(1445, 8, 30));
-        assert_eq!(p.to_hijri(Date::new(2024, 3, 12)), HijriDate::new(1445, 9, 1));
+        p.month_starts.push(MonthStart {
+            year: 1445,
+            month: 9,
+            starts_on: Date::new(2024, 3, 12),
+        });
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 3, 11)),
+            HijriDate::new(1445, 8, 30)
+        );
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 3, 12)),
+            HijriDate::new(1445, 9, 1)
+        );
         // Ramadan cannot exceed 30 days: Shawwal starts by 11 April at the latest.
         let shawwal = p.to_gregorian(HijriDate::new(1445, 10, 1));
         assert!(shawwal == Date::new(2024, 4, 10) || shawwal == Date::new(2024, 4, 11));
         // Then the announcement of Shawwal wins.
-        p.month_starts.push(MonthStart { year: 1445, month: 10, starts_on: Date::new(2024, 4, 10) });
-        assert_eq!(p.to_hijri(Date::new(2024, 4, 9)), HijriDate::new(1445, 9, 29));
-        assert_eq!(p.to_hijri(Date::new(2024, 4, 10)), HijriDate::new(1445, 10, 1));
+        p.month_starts.push(MonthStart {
+            year: 1445,
+            month: 10,
+            starts_on: Date::new(2024, 4, 10),
+        });
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 4, 9)),
+            HijriDate::new(1445, 9, 29)
+        );
+        assert_eq!(
+            p.to_hijri(Date::new(2024, 4, 10)),
+            HijriDate::new(1445, 10, 1)
+        );
         // Every month has 29 or 30 days around the announcements.
         for m in 6..=12 {
             let l = p.month_length(1445, m);
@@ -425,10 +484,16 @@ pub mod feed {
         /// Merge a country's announcements into a profile (announcements replace same-month entries).
         /// Returns how many month starts changed.
         pub fn apply(&self, country: &str, profile: &mut HijriProfile) -> usize {
-            let Some(region) = self.regions.get(&country.to_ascii_uppercase()) else { return 0 };
+            let Some(region) = self.regions.get(&country.to_ascii_uppercase()) else {
+                return 0;
+            };
             let mut changed = 0;
             for ms in &region.month_starts {
-                match profile.month_starts.iter_mut().find(|m| m.year == ms.year && m.month == ms.month) {
+                match profile
+                    .month_starts
+                    .iter_mut()
+                    .find(|m| m.year == ms.year && m.month == ms.month)
+                {
                     Some(m) if m.starts_on == ms.starts_on => {}
                     Some(m) => {
                         m.starts_on = ms.starts_on;
@@ -449,7 +514,9 @@ pub mod feed {
         use super::*;
         #[test]
         fn feed_parses_and_applies() {
-            let f: Feed = serde_json::from_str(include_str!("../../../data/hijri/announcements.json")).unwrap();
+            let f: Feed =
+                serde_json::from_str(include_str!("../../../data/hijri/announcements.json"))
+                    .unwrap();
             assert!(f.regions.contains_key("DZ"));
             let f: Feed = serde_json::from_str(
                 r#"{"schema":1,"regions":{"DZ":{"calendar":"umm_al_qura","month_starts":[{"year":1445,"month":9,"starts_on":"2024-03-11"}]}}}"#,

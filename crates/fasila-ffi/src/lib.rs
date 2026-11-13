@@ -116,17 +116,33 @@ fn day_info(d: &schedule::Day) -> DayInfo {
         fajr_estimated: t.fajr_estimated,
         isha_estimated: t.isha_estimated,
         polar_fallback: t.polar_fallback,
-        occasions: d.occasions.iter().map(|o| serde_json::to_value(o).unwrap().as_str().unwrap_or("").to_string()).collect(),
+        occasions: d
+            .occasions
+            .iter()
+            .map(|o| {
+                serde_json::to_value(o)
+                    .unwrap()
+                    .as_str()
+                    .unwrap_or("")
+                    .to_string()
+            })
+            .collect(),
     }
 }
 
 fn date(y: i32, m: u8, d: u8) -> Result<Date, FasilaError> {
     let date = Date::new(y, m, d);
-    date.is_valid().then_some(date).ok_or(FasilaError::InvalidDate)
+    date.is_valid()
+        .then_some(date)
+        .ok_or(FasilaError::InvalidDate)
 }
 
 fn kind_id(k: schedule::ItemKind) -> String {
-    serde_json::to_value(k).unwrap().as_str().unwrap().to_string()
+    serde_json::to_value(k)
+        .unwrap()
+        .as_str()
+        .unwrap()
+        .to_string()
 }
 
 #[derive(uniffi::Object)]
@@ -140,10 +156,12 @@ impl FasilaEngine {
     /// Build an engine from the shared configuration JSON.
     #[uniffi::constructor]
     pub fn new(config_json: String) -> Result<Arc<Self>, FasilaError> {
-        let config: Config =
-            serde_json::from_str(&config_json).map_err(|e| FasilaError::InvalidConfig { msg: e.to_string() })?;
+        let config: Config = serde_json::from_str(&config_json)
+            .map_err(|e| FasilaError::InvalidConfig { msg: e.to_string() })?;
         if !config.coordinates().is_valid() {
-            return Err(FasilaError::InvalidConfig { msg: "coordinates out of range".into() });
+            return Err(FasilaError::InvalidConfig {
+                msg: "coordinates out of range".into(),
+            });
         }
         let engine = config.engine();
         Ok(Arc::new(FasilaEngine { config, engine }))
@@ -158,9 +176,17 @@ impl FasilaEngine {
     }
 
     /// Consecutive days starting at the given date (e.g. a month view or a widget timeline).
-    pub fn days(&self, year: i32, month: u8, day: u8, count: u32) -> Result<Vec<DayInfo>, FasilaError> {
+    pub fn days(
+        &self,
+        year: i32,
+        month: u8,
+        day: u8,
+        count: u32,
+    ) -> Result<Vec<DayInfo>, FasilaError> {
         let start = date(year, month, day)?;
-        Ok((0..count as i64).map(|i| day_info(&self.engine.day(start.add_days(i)))).collect())
+        Ok((0..count as i64)
+            .map(|i| day_info(&self.engine.day(start.add_days(i))))
+            .collect())
     }
 
     pub fn occurrences(
@@ -171,8 +197,8 @@ impl FasilaEngine {
         day: u8,
         days: u32,
     ) -> Result<Vec<OccurrenceInfo>, FasilaError> {
-        let items: Vec<Item> =
-            serde_json::from_str(&items_json).map_err(|e| FasilaError::InvalidItems { msg: e.to_string() })?;
+        let items: Vec<Item> = serde_json::from_str(&items_json)
+            .map_err(|e| FasilaError::InvalidItems { msg: e.to_string() })?;
         Ok(self
             .engine
             .occurrences(&items, date(year, month, day)?, days)
@@ -198,7 +224,13 @@ impl FasilaEngine {
             .collect())
     }
 
-    pub fn free_slots(&self, year: i32, month: u8, day: u8, duration_minutes: u32) -> Result<Vec<SlotInfo>, FasilaError> {
+    pub fn free_slots(
+        &self,
+        year: i32,
+        month: u8,
+        day: u8,
+        duration_minutes: u32,
+    ) -> Result<Vec<SlotInfo>, FasilaError> {
         Ok(self
             .engine
             .free_slots(date(year, month, day)?, duration_minutes)
@@ -222,15 +254,25 @@ impl FasilaEngine {
     }
 
     pub fn hijri_to_gregorian(&self, year: i32, month: u8, day: u8) -> String {
-        self.config.hijri.to_gregorian(hijri::HijriDate::new(year, month, day)).to_string()
+        self.config
+            .hijri
+            .to_gregorian(hijri::HijriDate::new(year, month, day))
+            .to_string()
     }
 }
 
 /// Parse a natural-language sentence ("15 min before fajr", "اجتماع بعد العصر بنصف ساعة").
 #[uniffi::export]
-pub fn parse_sentence(text: String, year: i32, month: u8, day: u8, lang: String) -> Result<ParsedInfo, FasilaError> {
+pub fn parse_sentence(
+    text: String,
+    year: i32,
+    month: u8,
+    day: u8,
+    lang: String,
+) -> Result<ParsedInfo, FasilaError> {
     let today = date(year, month, day)?;
-    let p = core::parse::parse(&text, today).map_err(|e| FasilaError::Parse { msg: e.to_string() })?;
+    let p =
+        core::parse::parse(&text, today).map_err(|e| FasilaError::Parse { msg: e.to_string() })?;
     let item = Item {
         id: String::new(),
         title: p.title.clone(),
@@ -262,24 +304,61 @@ pub fn describe_anchor(key: String, offset_minutes: i32, lang: String) -> String
 
 #[uniffi::export]
 pub fn time_key_name(key: String, lang: String) -> String {
-    TimeKey::from_id(&key).map(|k| schedule::key_name(k, &lang).to_string()).unwrap_or_default()
+    TimeKey::from_id(&key)
+        .map(|k| schedule::key_name(k, &lang).to_string())
+        .unwrap_or_default()
 }
 
 #[uniffi::export]
 pub fn hijri_month_name(month: u8, lang: String) -> String {
     let i = (month.clamp(1, 12) - 1) as usize;
-    if lang == "ar" { hijri::MONTH_NAMES_AR[i] } else { hijri::MONTH_NAMES_EN[i] }.to_string()
+    if lang == "ar" {
+        hijri::MONTH_NAMES_AR[i]
+    } else {
+        hijri::MONTH_NAMES_EN[i]
+    }
+    .to_string()
 }
 
 #[uniffi::export]
 pub fn calculation_methods() -> Vec<MethodInfo> {
-    core::Method::ALL.iter().map(|m| MethodInfo { id: m.id().into(), name: m.display_name().into() }).collect()
+    core::Method::ALL
+        .iter()
+        .map(|m| MethodInfo {
+            id: m.id().into(),
+            name: m.display_name().into(),
+        })
+        .collect()
+}
+
+/// Full parameter set (`Params` JSON) defined by a calculation method: angles, Isha interval,
+/// Maghrib rule, midnight method and authority offsets. Apps merge it into the config while
+/// keeping the user's own choices (madhab, high-latitude/polar rules, rounding, adjustments).
+#[uniffi::export]
+pub fn method_params_json(method_id: String) -> Result<String, FasilaError> {
+    let m = core::Method::from_id(&method_id).ok_or(FasilaError::InvalidConfig { msg: format!("unknown method {method_id}") })?;
+    Ok(serde_json::to_string(&core::Params::for_method(m)).unwrap())
+}
+
+/// The method used by default in a country (ISO-3166 alpha-2).
+#[uniffi::export]
+pub fn recommended_method(country: String) -> String {
+    core::Method::for_country(&country).id().to_string()
 }
 
 /// Default configuration JSON for a place (method chosen from the country).
 #[uniffi::export]
-pub fn default_config_json(name: String, latitude: f64, longitude: f64, timezone: String, country: String) -> String {
-    serde_json::to_string(&Config::for_place(&name, latitude, longitude, &timezone, &country)).unwrap()
+pub fn default_config_json(
+    name: String,
+    latitude: f64,
+    longitude: f64,
+    timezone: String,
+    country: String,
+) -> String {
+    serde_json::to_string(&Config::for_place(
+        &name, latitude, longitude, &timezone, &country,
+    ))
+    .unwrap()
 }
 
 #[cfg(test)]
@@ -288,14 +367,26 @@ mod tests {
 
     #[test]
     fn end_to_end() {
-        let cfg = default_config_json("Algiers".into(), 36.7538, 3.0588, "Africa/Algiers".into(), "DZ".into());
+        let cfg = default_config_json(
+            "Algiers".into(),
+            36.7538,
+            3.0588,
+            "Africa/Algiers".into(),
+            "DZ".into(),
+        );
         let e = FasilaEngine::new(cfg).unwrap();
         let d = e.day(2026, 11, 13).unwrap();
         assert!(d.fajr.unwrap() < d.dhuhr.unwrap());
-        let p = parse_sentence("Alarm 15 min before fajr".into(), 2026, 11, 13, "ar".into()).unwrap();
+        let p =
+            parse_sentence("Alarm 15 min before fajr".into(), 2026, 11, 13, "ar".into()).unwrap();
         assert_eq!(p.description, "قبل الفجر بـربع ساعة");
-        let occ = e.occurrences(format!("[{}]", p.item_json), 2026, 11, 13, 3).unwrap();
+        let occ = e
+            .occurrences(format!("[{}]", p.item_json), 2026, 11, 13, 3)
+            .unwrap();
         assert_eq!(occ.len(), 3);
         assert_eq!(occ[0].start, d.fajr.unwrap() - 900);
+        let jafari = method_params_json("jafari".into()).unwrap();
+        assert!(jafari.contains("\"fajr_angle\":16.0"), "{jafari}");
+        assert_eq!(recommended_method("dz".into()), "algeria");
     }
 }

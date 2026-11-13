@@ -3,7 +3,9 @@
 use crate::astro::{self, Side};
 use crate::date::{jd_to_unix, Date};
 use crate::hijri::HijriCalendar;
-use crate::method::{HighLatitudeRule, Method, MidnightMethod, Params, PolarRule, Rounding, Twilight};
+use crate::method::{
+    HighLatitudeRule, Method, MidnightMethod, Params, PolarRule, Rounding, Twilight,
+};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -18,7 +20,10 @@ pub struct Coordinates {
 
 impl Coordinates {
     pub const fn new(latitude: f64, longitude: f64) -> Self {
-        Coordinates { latitude, longitude }
+        Coordinates {
+            latitude,
+            longitude,
+        }
     }
     pub fn is_valid(&self) -> bool {
         self.latitude.is_finite()
@@ -30,7 +35,11 @@ impl Coordinates {
 
 /// Every named instant of a prayer day. Prayer-anchored schedules refer to these.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum TimeKey {
     Imsak,
     Fajr,
@@ -58,7 +67,13 @@ impl TimeKey {
         TimeKey::LastThird,
     ];
     /// The five obligatory prayers.
-    pub const PRAYERS: [TimeKey; 5] = [TimeKey::Fajr, TimeKey::Dhuhr, TimeKey::Asr, TimeKey::Maghrib, TimeKey::Isha];
+    pub const PRAYERS: [TimeKey; 5] = [
+        TimeKey::Fajr,
+        TimeKey::Dhuhr,
+        TimeKey::Asr,
+        TimeKey::Maghrib,
+        TimeKey::Isha,
+    ];
 
     pub fn is_prayer(self) -> bool {
         Self::PRAYERS.contains(&self)
@@ -147,7 +162,10 @@ impl PrayerTimes {
 
     /// The next obligatory prayer today strictly after `now`.
     pub fn next_prayer(&self, now: i64) -> Option<(TimeKey, i64)> {
-        TimeKey::PRAYERS.iter().filter_map(|&k| self.get(k).map(|t| (k, t))).find(|&(_, t)| t > now)
+        TimeKey::PRAYERS
+            .iter()
+            .filter_map(|&k| self.get(k).map(|t| (k, t)))
+            .find(|&(_, t)| t > now)
     }
 }
 
@@ -177,7 +195,13 @@ fn sun_day(date: Date, c: Coordinates, params: &Params) -> Option<SunDay> {
         Some((rise, set))
     };
     if let Some((sunrise, sunset)) = try_lat(c.latitude) {
-        return Some(SunDay { transit, sunrise, sunset, lat: c.latitude, polar: false });
+        return Some(SunDay {
+            transit,
+            sunrise,
+            sunset,
+            lat: c.latitude,
+            polar: false,
+        });
     }
     if params.polar_rule == PolarRule::Unresolved {
         return None;
@@ -187,7 +211,13 @@ fn sun_day(date: Date, c: Coordinates, params: &Params) -> Option<SunDay> {
     let mut lat = 65.0_f64.min(c.latitude.abs());
     while lat > 0.0 {
         if let Some((sunrise, sunset)) = try_lat(sign * lat) {
-            return Some(SunDay { transit, sunrise, sunset, lat: sign * lat, polar: true });
+            return Some(SunDay {
+                transit,
+                sunrise,
+                sunset,
+                lat: sign * lat,
+                polar: true,
+            });
         }
         lat -= 0.5;
     }
@@ -209,7 +239,11 @@ fn night_portion(rule: HighLatitudeRule, angle: f64) -> Option<f64> {
 
 fn days_since_solstice(date: Date, lat: f64) -> f64 {
     let doy = date.day_of_year() as i32;
-    let days_in_year = if Date::is_leap_year(date.year) { 366 } else { 365 };
+    let days_in_year = if Date::is_leap_year(date.year) {
+        366
+    } else {
+        365
+    };
     if lat >= 0.0 {
         let mut d = doy + 10;
         if d >= days_in_year {
@@ -217,7 +251,11 @@ fn days_since_solstice(date: Date, lat: f64) -> f64 {
         }
         d as f64
     } else {
-        let southern = if Date::is_leap_year(date.year) { 173 } else { 172 };
+        let southern = if Date::is_leap_year(date.year) {
+            173
+        } else {
+            172
+        };
         let mut d = doy - southern;
         if d < 0 {
             d += days_in_year;
@@ -246,14 +284,26 @@ fn seasonal(a: f64, b: f64, c: f64, d: f64, dyy: f64) -> f64 {
 fn mc_fajr_minutes(date: Date, lat: f64) -> f64 {
     let l = lat.abs();
     let dyy = days_since_solstice(date, lat);
-    seasonal(75.0 + 28.65 / 55.0 * l, 75.0 + 19.44 / 55.0 * l, 75.0 + 32.74 / 55.0 * l, 75.0 + 48.10 / 55.0 * l, dyy)
+    seasonal(
+        75.0 + 28.65 / 55.0 * l,
+        75.0 + 19.44 / 55.0 * l,
+        75.0 + 32.74 / 55.0 * l,
+        75.0 + 48.10 / 55.0 * l,
+        dyy,
+    )
 }
 
 /// Moonsighting Committee seasonal Isha (general shafaq): minutes after sunset.
 fn mc_isha_minutes(date: Date, lat: f64) -> f64 {
     let l = lat.abs();
     let dyy = days_since_solstice(date, lat);
-    seasonal(75.0 + 25.60 / 55.0 * l, 75.0 + 2.050 / 55.0 * l, 75.0 - 9.21 / 55.0 * l, 75.0 + 6.14 / 55.0 * l, dyy)
+    seasonal(
+        75.0 + 25.60 / 55.0 * l,
+        75.0 + 2.050 / 55.0 * l,
+        75.0 - 9.21 / 55.0 * l,
+        75.0 + 6.14 / 55.0 * l,
+        dyy,
+    )
 }
 
 const MIN: f64 = 1.0 / 1440.0;
@@ -426,7 +476,8 @@ pub fn compute(date: Date, coords: Coordinates, params: &Params) -> PrayerTimes 
     let ua = &params.adjustments;
     let r = params.rounding;
     let fin = |jd: f64, adj_min: f64, dir: Dir| -> Option<i64> {
-        jd.is_finite().then(|| round(to_unix(jd) + adj_min * 60.0, r, dir))
+        jd.is_finite()
+            .then(|| round(to_unix(jd) + adj_min * 60.0, r, dir))
     };
 
     let fajr_t = fin(fajr, ma.fajr + ua.fajr, Dir::Up);
@@ -451,12 +502,22 @@ pub fn compute(date: Date, coords: Coordinates, params: &Params) -> PrayerTimes 
 
 /// Qibla: initial great-circle bearing from `coords` to the Kaaba, degrees from true north.
 pub fn qibla(coords: Coordinates) -> f64 {
-    astro::initial_bearing(coords.latitude, coords.longitude, KAABA.latitude, KAABA.longitude)
+    astro::initial_bearing(
+        coords.latitude,
+        coords.longitude,
+        KAABA.latitude,
+        KAABA.longitude,
+    )
 }
 
 /// Distance to the Kaaba in kilometres.
 pub fn distance_to_kaaba_km(coords: Coordinates) -> f64 {
-    astro::distance_km(coords.latitude, coords.longitude, KAABA.latitude, KAABA.longitude)
+    astro::distance_km(
+        coords.latitude,
+        coords.longitude,
+        KAABA.latitude,
+        KAABA.longitude,
+    )
 }
 
 pub const KAABA: Coordinates = Coordinates::new(21.422_487, 39.826_206);
@@ -524,8 +585,13 @@ mod tests {
         for _ in 0..73 {
             for &(lat, lon) in &places {
                 let t = compute(d, Coordinates::new(lat, lon), &p);
-                let seq = [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha, t.midnight];
-                let seq: Vec<i64> = seq.iter().map(|x| x.unwrap_or_else(|| panic!("{d} {lat} {:?}", t))).collect();
+                let seq = [
+                    t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha, t.midnight,
+                ];
+                let seq: Vec<i64> = seq
+                    .iter()
+                    .map(|x| x.unwrap_or_else(|| panic!("{d} {lat} {:?}", t)))
+                    .collect();
                 for w in seq.windows(2) {
                     assert!(w[0] <= w[1], "order broken at {d} ({lat},{lon}): {:?}", t);
                 }
@@ -537,11 +603,17 @@ mod tests {
     #[test]
     fn polar_fallback_resolves() {
         // Tromsø in December: polar night.
-        let t = compute(Date::new(2025, 12, 21), Coordinates::new(69.65, 18.96), &Params::default());
+        let t = compute(
+            Date::new(2025, 12, 21),
+            Coordinates::new(69.65, 18.96),
+            &Params::default(),
+        );
         assert!(t.polar_fallback);
         assert!(t.fajr.is_some() && t.isha.is_some() && t.sunrise.is_some());
-        let mut p = Params::default();
-        p.polar_rule = PolarRule::Unresolved;
+        let p = Params {
+            polar_rule: PolarRule::Unresolved,
+            ..Params::default()
+        };
         let t = compute(Date::new(2025, 12, 21), Coordinates::new(69.65, 18.96), &p);
         assert!(t.fajr.is_none() && t.dhuhr.is_some());
     }

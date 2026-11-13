@@ -13,7 +13,11 @@ pub struct Date {
 
 /// Day of the week, ISO order is *not* used: Sunday = 0 to match most calendars.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "lowercase"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "lowercase")
+)]
 pub enum Weekday {
     Sunday,
     Monday,
@@ -66,7 +70,10 @@ impl Date {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.month >= 1 && self.month <= 12 && self.day >= 1 && self.day <= Self::days_in_month(self.year, self.month)
+        self.month >= 1
+            && self.month <= 12
+            && self.day >= 1
+            && self.day <= Self::days_in_month(self.year, self.month)
     }
 
     /// Julian Day Number (integer, the day starting at noon UT of this date).
@@ -78,7 +85,9 @@ impl Date {
         let a = (14 - m) / 12;
         let yy = y + 4800 - a;
         let mm = m + 12 * a - 3;
-        d + (153 * mm + 2) / 5 + 365 * yy + yy.div_euclid(4) - yy.div_euclid(100) + yy.div_euclid(400) - 32045
+        d + (153 * mm + 2) / 5 + 365 * yy + yy.div_euclid(4) - yy.div_euclid(100)
+            + yy.div_euclid(400)
+            - 32045
     }
 
     pub fn from_jdn(jdn: i64) -> Date {
@@ -91,7 +100,11 @@ impl Date {
         let day = e - (153 * m + 2).div_euclid(5) + 1;
         let month = m + 3 - 12 * m.div_euclid(10);
         let year = 100 * b + d - 4800 + m.div_euclid(10);
-        Date { year: year as i32, month: month as u8, day: day as u8 }
+        Date {
+            year: year as i32,
+            month: month as u8,
+            day: day as u8,
+        }
     }
 
     /// Julian Date at 0h UT of this date.
@@ -154,7 +167,9 @@ impl Serialize for Date {
 impl<'de> Deserialize<'de> for Date {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         let s = String::deserialize(d)?;
-        Date::parse_iso(&s).ok_or_else(|| serde::de::Error::custom(format!("invalid date {s:?}, expected YYYY-MM-DD")))
+        Date::parse_iso(&s).ok_or_else(|| {
+            serde::de::Error::custom(format!("invalid date {s:?}, expected YYYY-MM-DD"))
+        })
     }
 }
 

@@ -48,7 +48,13 @@ pub struct Config {
 
 impl Config {
     /// Sensible defaults for a place, picking the method used in that country.
-    pub fn for_place(name: &str, latitude: f64, longitude: f64, timezone: &str, country: &str) -> Config {
+    pub fn for_place(
+        name: &str,
+        latitude: f64,
+        longitude: f64,
+        timezone: &str,
+        country: &str,
+    ) -> Config {
         let method = Method::for_country(country);
         let calendar = HijriCalendar::UmmAlQura;
         Config {
@@ -90,7 +96,10 @@ mod tests {
         let back: Config = serde_json::from_str(&s).unwrap();
         assert_eq!(back, c);
         // Partial documents fill in defaults.
-        let partial: Config = serde_json::from_str(r#"{"location":{"latitude":1.0,"longitude":2.0},"future_field":1}"#).unwrap();
+        let partial: Config = serde_json::from_str(
+            r#"{"location":{"latitude":1.0,"longitude":2.0},"future_field":1}"#,
+        )
+        .unwrap();
         assert_eq!(partial.location.latitude, 1.0);
         assert_eq!(partial.params.method, Method::MuslimWorldLeague);
     }

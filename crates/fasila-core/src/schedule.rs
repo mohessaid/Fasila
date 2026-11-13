@@ -24,19 +24,31 @@ pub struct Anchor {
 
 impl Anchor {
     pub const fn new(key: TimeKey, offset_minutes: i32) -> Self {
-        Anchor { key, offset_minutes }
+        Anchor {
+            key,
+            offset_minutes,
+        }
     }
     pub const fn at(key: TimeKey) -> Self {
-        Anchor { key, offset_minutes: 0 }
+        Anchor {
+            key,
+            offset_minutes: 0,
+        }
     }
     pub fn resolve(&self, times: &PrayerTimes) -> Option<i64> {
-        times.get(self.key).map(|t| t + self.offset_minutes as i64 * 60)
+        times
+            .get(self.key)
+            .map(|t| t + self.offset_minutes as i64 * 60)
     }
 }
 
 /// How an item ends.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(tag = "type", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "type", rename_all = "snake_case")
+)]
 pub enum End {
     /// Instantaneous (alarms, reminders).
     None,
@@ -48,23 +60,40 @@ pub enum End {
 
 /// When an item repeats. All dates are local civil dates.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(tag = "type", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "type", rename_all = "snake_case")
+)]
 pub enum Recurrence {
-    Once { date: Date },
+    Once {
+        date: Date,
+    },
     Daily,
     /// Bit mask, bit 0 = Sunday … bit 6 = Saturday.
-    Weekly { days: u8 },
+    Weekly {
+        days: u8,
+    },
     /// Specific days of every Hijri month (e.g. 13, 14, 15 — Ayyām al-Bīḍ).
-    HijriMonthly { days: Vec<u8> },
+    HijriMonthly {
+        days: Vec<u8>,
+    },
     /// One Hijri date every year (e.g. 10 Muharram).
-    HijriYearly { month: u8, day: u8 },
+    HijriYearly {
+        month: u8,
+        day: u8,
+    },
     /// Every day of a Hijri month (e.g. all of Ramadan = 9).
-    HijriMonth { month: u8 },
+    HijriMonth {
+        month: u8,
+    },
 }
 
 impl Recurrence {
     pub fn weekly(days: &[Weekday]) -> Recurrence {
-        Recurrence::Weekly { days: days.iter().fold(0, |m, d| m | d.bit()) }
+        Recurrence::Weekly {
+            days: days.iter().fold(0, |m, d| m | d.bit()),
+        }
     }
 
     pub fn matches(&self, date: Date, hijri: HijriDate) -> bool {
@@ -80,7 +109,11 @@ impl Recurrence {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum ItemKind {
     /// Rings at a moment.
     Alarm,
@@ -142,7 +175,11 @@ pub struct PrayerGuard {
 
 impl Default for PrayerGuard {
     fn default() -> Self {
-        PrayerGuard { before_minutes: 5, after_minutes: 20, jumuah_extra_minutes: 40 }
+        PrayerGuard {
+            before_minutes: 5,
+            after_minutes: 20,
+            jumuah_extra_minutes: 40,
+        }
     }
 }
 
@@ -187,7 +224,12 @@ pub struct Engine {
 
 impl Engine {
     pub fn new(coords: Coordinates, params: Params, hijri: HijriProfile) -> Self {
-        Engine { coords, params, hijri, guard: PrayerGuard::default() }
+        Engine {
+            coords,
+            params,
+            hijri,
+            guard: PrayerGuard::default(),
+        }
     }
 
     pub fn day(&self, date: Date) -> Day {
@@ -225,7 +267,10 @@ impl Engine {
     /// Prayer windows overlapped by the interval [start, end) (or the instant `start`).
     pub fn conflicts_on(&self, day: &Day, start: i64, end: Option<i64>) -> Vec<Conflict> {
         let end = end.unwrap_or(start + 1);
-        self.protected_windows(day).into_iter().filter(|w| start < w.window_end && end > w.window_start).collect()
+        self.protected_windows(day)
+            .into_iter()
+            .filter(|w| start < w.window_end && end > w.window_start)
+            .collect()
     }
 
     fn resolve_item(&self, item: &Item, day: &Day) -> Option<(i64, Option<i64>)> {
@@ -289,7 +334,11 @@ impl Engine {
             // Fajr's window: you cannot schedule past sunrise into nothing; still fine.
             if end <= b.window_start {
                 let offset = ((start - a.prayer_time) / 60) as i32;
-                slots.push(Slot { anchor: Anchor::new(a.prayer, offset), start, end });
+                slots.push(Slot {
+                    anchor: Anchor::new(a.prayer, offset),
+                    start,
+                    end,
+                });
             }
         }
         // After Isha, until midnight (end of Isha's preferred time).
@@ -427,7 +476,13 @@ mod tests {
     #[test]
     fn alarm_before_fajr_moves_with_the_sun() {
         let e = engine();
-        let items = [item("wake", ItemKind::Alarm, Anchor::new(TimeKey::Fajr, -15), End::None, Recurrence::Daily)];
+        let items = [item(
+            "wake",
+            ItemKind::Alarm,
+            Anchor::new(TimeKey::Fajr, -15),
+            End::None,
+            Recurrence::Daily,
+        )];
         let occ = e.occurrences(&items, Date::new(2026, 1, 1), 180);
         assert_eq!(occ.len(), 180);
         for o in &occ {
@@ -446,10 +501,18 @@ mod tests {
                 "ok",
                 ItemKind::Event,
                 Anchor::new(TimeKey::Asr, 30),
-                End::Until { anchor: Anchor::new(TimeKey::Maghrib, -10) },
+                End::Until {
+                    anchor: Anchor::new(TimeKey::Maghrib, -10),
+                },
                 Recurrence::Daily,
             ),
-            item("bad", ItemKind::Event, Anchor::new(TimeKey::Asr, 30), End::Duration { minutes: 600 }, Recurrence::Daily),
+            item(
+                "bad",
+                ItemKind::Event,
+                Anchor::new(TimeKey::Asr, 30),
+                End::Duration { minutes: 600 },
+                Recurrence::Daily,
+            ),
         ];
         let occ = e.occurrences(&items, Date::new(2026, 11, 13), 1);
         let ok = occ.iter().find(|o| o.item_id == "ok").unwrap();
@@ -463,7 +526,13 @@ mod tests {
     fn jumuah_and_weekly() {
         let e = engine();
         let rec = Recurrence::weekly(&[Weekday::Friday]);
-        let items = [item("jumuah", ItemKind::Alarm, Anchor::new(TimeKey::Dhuhr, -45), End::None, rec)];
+        let items = [item(
+            "jumuah",
+            ItemKind::Alarm,
+            Anchor::new(TimeKey::Dhuhr, -45),
+            End::None,
+            rec,
+        )];
         let occ = e.occurrences(&items, Date::new(2026, 11, 1), 30);
         assert!(occ.iter().all(|o| o.date.weekday() == Weekday::Friday));
         assert_eq!(occ.len(), 4);
@@ -477,9 +546,17 @@ mod tests {
             ItemKind::Task,
             Anchor::new(TimeKey::Fajr, -45),
             End::None,
-            Recurrence::HijriMonthly { days: vec![13, 14, 15] },
+            Recurrence::HijriMonthly {
+                days: vec![13, 14, 15],
+            },
         );
-        let ramadan = item("suhoor", ItemKind::Alarm, Anchor::new(TimeKey::Imsak, -30), End::None, Recurrence::HijriMonth { month: 9 });
+        let ramadan = item(
+            "suhoor",
+            ItemKind::Alarm,
+            Anchor::new(TimeKey::Imsak, -30),
+            End::None,
+            Recurrence::HijriMonth { month: 9 },
+        );
         let occ = e.occurrences(&[bid, ramadan], Date::new(2027, 1, 1), 120);
         let bid_n = occ.iter().filter(|o| o.item_id == "bid").count();
         let ram_n = occ.iter().filter(|o| o.item_id == "suhoor").count();
@@ -503,6 +580,9 @@ mod tests {
         let a = Anchor::new(TimeKey::Fajr, -15);
         assert_eq!(describe_anchor(&a, "en"), "15 min before Fajr");
         assert_eq!(describe_anchor(&a, "ar"), "قبل الفجر بـربع ساعة");
-        assert_eq!(describe_anchor(&Anchor::new(TimeKey::Asr, 90), "fr"), "1 h 30 après Asr");
+        assert_eq!(
+            describe_anchor(&Anchor::new(TimeKey::Asr, 90), "fr"),
+            "1 h 30 après Asr"
+        );
     }
 }

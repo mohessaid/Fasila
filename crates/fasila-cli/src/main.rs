@@ -10,7 +10,11 @@ use fasila_core::{
 use serde_json::{json, Value};
 
 #[derive(Parser)]
-#[command(name = "fasila", version, about = "Prayer times, Hijri calendar and prayer-anchored schedules")]
+#[command(
+    name = "fasila",
+    version,
+    about = "Prayer times, Hijri calendar and prayer-anchored schedules"
+)]
 struct Cli {
     /// Config JSON file (same schema as the apps). Overridden by --lat/--lon/--method.
     #[arg(long, global = true, env = "FASILA_CONFIG")]
@@ -57,7 +61,11 @@ enum Cmd {
     /// Qibla bearing and distance to the Kaaba.
     Qibla,
     /// Parse a natural-language sentence into an anchored item.
-    Parse { sentence: Vec<String>, #[arg(long, default_value = "en")] lang: String },
+    Parse {
+        sentence: Vec<String>,
+        #[arg(long, default_value = "en")]
+        lang: String,
+    },
     /// Expand an items JSON file into occurrences with prayer conflicts.
     Schedule {
         items: String,
@@ -83,7 +91,10 @@ fn fail(code: i32, msg: impl std::fmt::Display) -> ! {
 }
 
 fn now() -> i64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as i64
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64
 }
 
 fn iso(ts: i64) -> String {
@@ -134,7 +145,13 @@ fn date_arg(s: &Option<String>, off: i32) -> Date {
 fn day_json(d: &schedule::Day) -> Value {
     let mut times = serde_json::Map::new();
     for k in TimeKey::ALL {
-        times.insert(k.id().into(), d.times.get(k).map(|t| json!({ "unix": t, "utc": iso(t) })).unwrap_or(Value::Null));
+        times.insert(
+            k.id().into(),
+            d.times
+                .get(k)
+                .map(|t| json!({ "unix": t, "utc": iso(t) }))
+                .unwrap_or(Value::Null),
+        );
     }
     json!({
         "date": d.date.to_string(),
@@ -163,8 +180,17 @@ fn main() {
     let off = cli.utc_offset;
     match &cli.cmd {
         Cmd::Methods => {
-            let v: Vec<Value> = Method::ALL.iter().map(|m| json!({ "id": m.id(), "name": m.display_name() })).collect();
-            out(&cli, json!(v), || Method::ALL.iter().map(|m| format!("{:24} {}", m.id(), m.display_name())).collect::<Vec<_>>().join("\n"));
+            let v: Vec<Value> = Method::ALL
+                .iter()
+                .map(|m| json!({ "id": m.id(), "name": m.display_name() }))
+                .collect();
+            out(&cli, json!(v), || {
+                Method::ALL
+                    .iter()
+                    .map(|m| format!("{:24} {}", m.id(), m.display_name()))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            });
         }
         Cmd::Parse { sentence, lang } => {
             let s = sentence.join(" ");
@@ -172,7 +198,9 @@ fn main() {
             match parse::parse(&s, today) {
                 Ok(p) => {
                     let desc = schedule::describe_anchor(&p.start, lang);
-                    out(&cli, json!({ "parsed": p, "description": desc }), || desc.clone());
+                    out(&cli, json!({ "parsed": p, "description": desc }), || {
+                        desc.clone()
+                    });
                 }
                 Err(e) => fail(3, e),
             }
@@ -182,14 +210,31 @@ fn main() {
             let e = cfg.engine();
             let d0 = date_arg(date, off);
             let ds: Vec<schedule::Day> = (0..*days as i64).map(|i| e.day(d0.add_days(i))).collect();
-            out(&cli, json!({ "method": cfg.params.method.id(), "location": cfg.location, "days": ds.iter().map(day_json).collect::<Vec<_>>() }), || {
-                let mut s = format!("{:10}  {:10}  {:>5} {:>5} {:>5} {:>5} {:>5} {:>5}\n", "date", "hijri", "fajr", "rise", "dhuhr", "asr", "magh", "isha");
-                for d in &ds {
-                    let f = |k| d.times.get(k).map(|t| hm(t, off)).unwrap_or("--:--".into());
-                    s += &format!("{}  {}  {} {} {} {} {} {}\n", d.date, d.hijri, f(TimeKey::Fajr), f(TimeKey::Sunrise), f(TimeKey::Dhuhr), f(TimeKey::Asr), f(TimeKey::Maghrib), f(TimeKey::Isha));
-                }
-                s
-            });
+            out(
+                &cli,
+                json!({ "method": cfg.params.method.id(), "location": cfg.location, "days": ds.iter().map(day_json).collect::<Vec<_>>() }),
+                || {
+                    let mut s = format!(
+                        "{:10}  {:10}  {:>5} {:>5} {:>5} {:>5} {:>5} {:>5}\n",
+                        "date", "hijri", "fajr", "rise", "dhuhr", "asr", "magh", "isha"
+                    );
+                    for d in &ds {
+                        let f = |k| d.times.get(k).map(|t| hm(t, off)).unwrap_or("--:--".into());
+                        s += &format!(
+                            "{}  {}  {} {} {} {} {} {}\n",
+                            d.date,
+                            d.hijri,
+                            f(TimeKey::Fajr),
+                            f(TimeKey::Sunrise),
+                            f(TimeKey::Dhuhr),
+                            f(TimeKey::Asr),
+                            f(TimeKey::Maghrib),
+                            f(TimeKey::Isha)
+                        );
+                    }
+                    s
+                },
+            );
         }
         Cmd::Next => {
             let cfg = load_config(&cli);
@@ -198,46 +243,111 @@ fn main() {
             let today = Date::from_unix_with_offset(n, off);
             let found = (0..2).find_map(|i| e.day(today.add_days(i)).times.next_prayer(n));
             let (k, t) = found.unwrap_or_else(|| fail(2, "no upcoming prayer"));
-            out(&cli, json!({ "prayer": k.id(), "unix": t, "utc": iso(t), "seconds_until": t - n }), || {
-                format!("{} at {} (in {} min)", schedule::key_name(k, "en"), hm(t, off), (t - n) / 60)
-            });
+            out(
+                &cli,
+                json!({ "prayer": k.id(), "unix": t, "utc": iso(t), "seconds_until": t - n }),
+                || {
+                    format!(
+                        "{} at {} (in {} min)",
+                        schedule::key_name(k, "en"),
+                        hm(t, off),
+                        (t - n) / 60
+                    )
+                },
+            );
         }
         Cmd::Hijri { date, from_hijri } => {
             let cfg = load_config(&cli);
             if *from_hijri {
-                let s = date.clone().unwrap_or_else(|| fail(2, "give a Hijri date YYYY-MM-DD"));
+                let s = date
+                    .clone()
+                    .unwrap_or_else(|| fail(2, "give a Hijri date YYYY-MM-DD"));
                 let parts: Vec<i32> = s.split('-').filter_map(|x| x.parse().ok()).collect();
-                if parts.len() != 3 || !(1..=12).contains(&parts[1]) || !(1..=30).contains(&parts[2]) {
+                if parts.len() != 3
+                    || !(1..=12).contains(&parts[1])
+                    || !(1..=30).contains(&parts[2])
+                {
                     fail(2, "bad Hijri date, expected YYYY-MM-DD")
                 }
-                let g = cfg.hijri.to_gregorian(HijriDate::new(parts[0], parts[1] as u8, parts[2] as u8));
-                out(&cli, json!({ "gregorian": g.to_string() }), || g.to_string());
+                let g = cfg.hijri.to_gregorian(HijriDate::new(
+                    parts[0],
+                    parts[1] as u8,
+                    parts[2] as u8,
+                ));
+                out(&cli, json!({ "gregorian": g.to_string() }), || {
+                    g.to_string()
+                });
             } else {
                 let d = date_arg(date, off);
                 let h = cfg.hijri.to_hijri(d);
                 let name = hijri::MONTH_NAMES_EN[h.month as usize - 1];
-                out(&cli, json!({ "gregorian": d.to_string(), "hijri": h, "month_name": name, "month_name_ar": hijri::MONTH_NAMES_AR[h.month as usize - 1], "occasions": hijri::occasions(h) }), || format!("{} {} {} AH", h.day, name, h.year));
+                out(
+                    &cli,
+                    json!({ "gregorian": d.to_string(), "hijri": h, "month_name": name, "month_name_ar": hijri::MONTH_NAMES_AR[h.month as usize - 1], "occasions": hijri::occasions(h) }),
+                    || format!("{} {} {} AH", h.day, name, h.year),
+                );
             }
         }
         Cmd::Qibla => {
             let cfg = load_config(&cli);
             let b = fasila_core::qibla(cfg.coordinates());
             let km = fasila_core::prayer::distance_to_kaaba_km(cfg.coordinates());
-            out(&cli, json!({ "bearing_degrees": b, "distance_km": km }), || format!("{b:.1}° from true north, {km:.0} km"));
+            out(
+                &cli,
+                json!({ "bearing_degrees": b, "distance_km": km }),
+                || format!("{b:.1}° from true north, {km:.0} km"),
+            );
         }
         Cmd::Schedule { items, date, days } => {
             let cfg = load_config(&cli);
-            let s = std::fs::read_to_string(items).unwrap_or_else(|e| fail(2, format!("{items}: {e}")));
-            let items: Vec<Item> = serde_json::from_str(&s).unwrap_or_else(|e| fail(2, format!("items: {e}")));
+            let s =
+                std::fs::read_to_string(items).unwrap_or_else(|e| fail(2, format!("{items}: {e}")));
+            let items: Vec<Item> =
+                serde_json::from_str(&s).unwrap_or_else(|e| fail(2, format!("items: {e}")));
             let occ = cfg.engine().occurrences(&items, date_arg(date, off), *days);
             out(&cli, json!(occ), || {
-                occ.iter().map(|o| format!("{} {} {}{}", o.date, hm(o.start, off), o.title, if o.conflicts.is_empty() { String::new() } else { format!("  ⚠ overlaps {}", o.conflicts.iter().map(|c| c.prayer.id()).collect::<Vec<_>>().join(", ")) })).collect::<Vec<_>>().join("\n")
+                occ.iter()
+                    .map(|o| {
+                        format!(
+                            "{} {} {}{}",
+                            o.date,
+                            hm(o.start, off),
+                            o.title,
+                            if o.conflicts.is_empty() {
+                                String::new()
+                            } else {
+                                format!(
+                                    "  ⚠ overlaps {}",
+                                    o.conflicts
+                                        .iter()
+                                        .map(|c| c.prayer.id())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
+                                )
+                            }
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
             });
         }
         Cmd::Slots { minutes, date } => {
             let cfg = load_config(&cli);
             let slots = cfg.engine().free_slots(date_arg(date, off), *minutes);
-            out(&cli, json!(slots), || slots.iter().map(|s| format!("{}–{}  ({})", hm(s.start, off), hm(s.end, off), schedule::describe_anchor(&s.anchor, "en"))).collect::<Vec<_>>().join("\n"));
+            out(&cli, json!(slots), || {
+                slots
+                    .iter()
+                    .map(|s| {
+                        format!(
+                            "{}–{}  ({})",
+                            hm(s.start, off),
+                            hm(s.end, off),
+                            schedule::describe_anchor(&s.anchor, "en")
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            });
         }
     }
 }

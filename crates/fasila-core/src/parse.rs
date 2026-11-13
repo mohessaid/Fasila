@@ -23,7 +23,11 @@ pub struct Parsed {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum ParseError {
     /// No prayer was mentioned — Fasila schedules relative to prayers only.
     NoPrayer,
@@ -79,9 +83,16 @@ fn find_word(hay: &str, needle: &str, from: usize) -> Option<usize> {
     let mut start = from;
     while let Some(pos) = hay.get(start..)?.find(needle) {
         let abs = start + pos;
-        let before_ok = !latin || hay[..abs].chars().next_back().is_none_or(|c| !is_word_char(c));
+        let before_ok = !latin
+            || hay[..abs]
+                .chars()
+                .next_back()
+                .is_none_or(|c| !is_word_char(c));
         let after = &hay[abs + needle.len()..];
-        let after_ok = after.chars().next().is_none_or(|c| !is_word_char(c) || (!latin && !c.is_alphabetic()))
+        let after_ok = after
+            .chars()
+            .next()
+            .is_none_or(|c| !is_word_char(c) || (!latin && !c.is_alphabetic()))
             || (!latin && !after.starts_with(|c: char| c.is_alphabetic()))
             || (latin && after.starts_with(|c: char| c.is_ascii_digit()));
         if before_ok && after_ok {
@@ -161,8 +172,16 @@ const PRAYER_WORDS: &[(&str, TimeKey)] = &[
     ("عشا", TimeKey::Isha),
 ];
 
-const JUMUAH_WORDS: &[&str] =
-    &["صلاه الجمعه", "jumu'ah", "jumuah", "jumua", "jummah", "jumah", "joumouaa", "friday prayer"];
+const JUMUAH_WORDS: &[&str] = &[
+    "صلاه الجمعه",
+    "jumu'ah",
+    "jumuah",
+    "jumua",
+    "jummah",
+    "jumah",
+    "joumouaa",
+    "friday prayer",
+];
 
 struct Mention {
     pos: usize,
@@ -176,9 +195,16 @@ fn prayer_mentions(t: &str) -> Vec<Mention> {
     for &(w, key) in PRAYER_WORDS {
         let mut from = 0;
         while let Some(pos) = find_word(t, w, from) {
-            let overlaps = found.iter().any(|m| pos < m.pos + m.len && m.pos < pos + w.len());
+            let overlaps = found
+                .iter()
+                .any(|m| pos < m.pos + m.len && m.pos < pos + w.len());
             if !overlaps {
-                found.push(Mention { pos, len: w.len(), key, jumuah: JUMUAH_WORDS.contains(&w) });
+                found.push(Mention {
+                    pos,
+                    len: w.len(),
+                    key,
+                    jumuah: JUMUAH_WORDS.contains(&w),
+                });
             }
             from = pos + w.len();
         }
@@ -189,7 +215,19 @@ fn prayer_mentions(t: &str) -> Vec<Mention> {
 
 const BEFORE: &[&str] = &["before", "prior to", "ahead of", "avant", "قبل"];
 const AFTER: &[&str] = &["after", "past", "apres", "بعد"];
-const UNTIL: &[&str] = &["until", "till", "jusqu'a", "jusqu'au", "jusqua", "حتي", "الي", "لغايه", "to", "->", "-"];
+const UNTIL: &[&str] = &[
+    "until",
+    "till",
+    "jusqu'a",
+    "jusqu'au",
+    "jusqua",
+    "حتي",
+    "الي",
+    "لغايه",
+    "to",
+    "->",
+    "-",
+];
 const DURATION: &[&str] = &["for", "lasting", "pendant", "durant", "لمده", "مده"];
 
 fn word_numbers(lang_word: &str) -> Option<u32> {
@@ -252,23 +290,56 @@ fn amount_minutes(s: &str) -> Option<u32> {
             while i < chars.len() && (chars[i].is_ascii_digit() || chars[i] == '.') {
                 i += 1;
             }
-            let n: f64 = chars[st..i].iter().collect::<String>().parse().unwrap_or(0.0);
+            let n: f64 = chars[st..i]
+                .iter()
+                .collect::<String>()
+                .parse()
+                .unwrap_or(0.0);
             saw_number = true;
             // Unit right after (skipping spaces / Arabic "ب" / "-").
             let rest: String = chars[i..].iter().collect::<String>();
             let r = rest.trim_start();
-            let unit_hours = ["hours", "hour", "hrs", "hr", "heures", "heure", "ساعات", "ساعه", "h"];
-            let unit_min = ["minutes", "minute", "mins", "min", "mn", "m", "دقائق", "دقيقه", "د"];
-            if let Some(u) = unit_hours.iter().find(|u| r.starts_with(**u) && !r[u.len()..].starts_with(char::is_alphabetic)) {
+            let unit_hours = [
+                "hours",
+                "hour",
+                "hrs",
+                "hr",
+                "heures",
+                "heure",
+                "ساعات",
+                "ساعه",
+                "h",
+            ];
+            let unit_min = [
+                "minutes",
+                "minute",
+                "mins",
+                "min",
+                "mn",
+                "m",
+                "دقائق",
+                "دقيقه",
+                "د",
+            ];
+            if let Some(u) = unit_hours
+                .iter()
+                .find(|u| r.starts_with(**u) && !r[u.len()..].starts_with(char::is_alphabetic))
+            {
                 add((n * 60.0).round() as u32);
                 i += rest.len() - r.len() + u.chars().count();
                 // "1h30"
-                let tail: String = chars[i..].iter().take_while(|c| c.is_ascii_digit()).collect();
+                let tail: String = chars[i..]
+                    .iter()
+                    .take_while(|c| c.is_ascii_digit())
+                    .collect();
                 if !tail.is_empty() {
                     add(tail.parse().unwrap_or(0));
                     i += tail.len();
                 }
-            } else if let Some(u) = unit_min.iter().find(|u| r.starts_with(**u) && !r[u.len()..].starts_with(char::is_alphabetic)) {
+            } else if let Some(u) = unit_min
+                .iter()
+                .find(|u| r.starts_with(**u) && !r[u.len()..].starts_with(char::is_alphabetic))
+            {
                 add(n.round() as u32);
                 i += rest.len() - r.len() + u.chars().count();
             } else {
@@ -282,7 +353,10 @@ fn amount_minutes(s: &str) -> Option<u32> {
         return total;
     }
     // Number words + unit ("ten minutes", "an hour", "خمس دقائق", "ساعه").
-    let words: Vec<&str> = s.split(|c: char| c.is_whitespace() || c == ',').filter(|w| !w.is_empty()).collect();
+    let words: Vec<&str> = s
+        .split(|c: char| c.is_whitespace() || c == ',')
+        .filter(|w| !w.is_empty())
+        .collect();
     for (idx, w) in words.iter().enumerate() {
         let w = w.trim_start_matches('ب');
         let next = words.get(idx + 1).copied().unwrap_or("");
@@ -303,7 +377,10 @@ fn amount_minutes(s: &str) -> Option<u32> {
 
 fn find_any(t: &str, words: &[&str], from: usize, to: usize) -> Option<(usize, usize)> {
     let seg = t.get(from..to)?;
-    words.iter().filter_map(|w| find_word(seg, w, 0).map(|p| (from + p, w.len()))).min_by_key(|x| x.0)
+    words
+        .iter()
+        .filter_map(|w| find_word(seg, w, 0).map(|p| (from + p, w.len())))
+        .min_by_key(|x| x.0)
 }
 
 /// Parse the anchor within `t[lo..hi]` around the prayer mention `m`.
@@ -340,10 +417,26 @@ fn anchor_in(t: &str, lo: usize, hi: usize, m: &Mention) -> (Anchor, usize, usiz
         let body = &tail_trim[1..];
         let lead = body.len() - body.trim_start().len();
         let body = body.trim_start();
-        let digits = body.find(|c: char| !(c.is_ascii_digit() || c == '.' || c == 'h')).unwrap_or(body.len());
+        let digits = body
+            .find(|c: char| !(c.is_ascii_digit() || c == '.' || c == 'h'))
+            .unwrap_or(body.len());
         let mut num_len = digits;
         let rest = &body[digits..];
-        for u in ["minutes", "minute", "mins", "min", "mn", "دقائق", "دقيقه", "hours", "hour", "heures", "heure", "ساعات", "ساعه"] {
+        for u in [
+            "minutes",
+            "minute",
+            "mins",
+            "min",
+            "mn",
+            "دقائق",
+            "دقيقه",
+            "hours",
+            "hour",
+            "heures",
+            "heure",
+            "ساعات",
+            "ساعه",
+        ] {
             let r = rest.trim_start();
             if r.starts_with(u) {
                 num_len = digits + (rest.len() - r.len()) + u.len();
@@ -353,7 +446,11 @@ fn anchor_in(t: &str, lo: usize, hi: usize, m: &Mention) -> (Anchor, usize, usiz
         let num_part = &body[..num_len];
         if let Some(mins) = amount_minutes(num_part).filter(|_| digits > 0) {
             let consumed = (tail.len() - tail_trim.len()) + 1 + lead + num_len;
-            return (Anchor::new(m.key, s * mins as i32), m.pos, (m.pos + m.len + consumed).min(seg_hi));
+            return (
+                Anchor::new(m.key, s * mins as i32),
+                m.pos,
+                (m.pos + m.len + consumed).min(seg_hi),
+            );
         }
     }
     if sign == 0 {
@@ -379,12 +476,30 @@ fn anchor_in(t: &str, lo: usize, hi: usize, m: &Mention) -> (Anchor, usize, usiz
 fn weekday_words() -> [(&'static [&'static str], Weekday); 7] {
     [
         (&["sunday", "sundays", "dimanche", "الاحد"], Weekday::Sunday),
-        (&["monday", "mondays", "lundi", "الاثنين", "الاتنين"], Weekday::Monday),
-        (&["tuesday", "tuesdays", "mardi", "الثلاثاء"], Weekday::Tuesday),
-        (&["wednesday", "wednesdays", "mercredi", "الاربعاء"], Weekday::Wednesday),
-        (&["thursday", "thursdays", "jeudi", "الخميس"], Weekday::Thursday),
-        (&["friday", "fridays", "vendredi", "الجمعه"], Weekday::Friday),
-        (&["saturday", "saturdays", "samedi", "السبت"], Weekday::Saturday),
+        (
+            &["monday", "mondays", "lundi", "الاثنين", "الاتنين"],
+            Weekday::Monday,
+        ),
+        (
+            &["tuesday", "tuesdays", "mardi", "الثلاثاء"],
+            Weekday::Tuesday,
+        ),
+        (
+            &["wednesday", "wednesdays", "mercredi", "الاربعاء"],
+            Weekday::Wednesday,
+        ),
+        (
+            &["thursday", "thursdays", "jeudi", "الخميس"],
+            Weekday::Thursday,
+        ),
+        (
+            &["friday", "fridays", "vendredi", "الجمعه"],
+            Weekday::Friday,
+        ),
+        (
+            &["saturday", "saturdays", "samedi", "السبت"],
+            Weekday::Saturday,
+        ),
     ]
 }
 
@@ -403,7 +518,12 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
     if let Some((p, l)) = find_any(&t, DURATION, 0, t.len()) {
         let rest = &t[p + l..];
         // Duration text runs until the next prayer mention or connector.
-        let stop = mentions.iter().map(|m| m.pos).filter(|&mp| mp > p).min().unwrap_or(t.len());
+        let stop = mentions
+            .iter()
+            .map(|m| m.pos)
+            .filter(|&mp| mp > p)
+            .min()
+            .unwrap_or(t.len());
         let stop = [BEFORE, AFTER, UNTIL]
             .iter()
             .filter_map(|ws| find_any(&t, ws, p + l, stop).map(|x| x.0))
@@ -415,7 +535,16 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
         }
     }
     let masked: String = match dur_span {
-        Some((a, b)) => t.char_indices().map(|(i, c)| if i >= a && i < b && !c.is_whitespace() { '·' } else { c }).collect(),
+        Some((a, b)) => t
+            .char_indices()
+            .map(|(i, c)| {
+                if i >= a && i < b && !c.is_whitespace() {
+                    '·'
+                } else {
+                    c
+                }
+            })
+            .collect(),
         None => t.clone(),
     };
     // '·' is 2 bytes in UTF-8; keep byte offsets aligned by masking char-for-char with same width.
@@ -425,7 +554,14 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
         match dur_span {
             Some((a, b)) => {
                 let mut s = t.clone();
-                let filler: String = t[a..b].chars().map(|c| if c.is_whitespace() { c } else { ' ' }.to_string().repeat(c.len_utf8())).collect();
+                let filler: String = t[a..b]
+                    .chars()
+                    .map(|c| {
+                        if c.is_whitespace() { c } else { ' ' }
+                            .to_string()
+                            .repeat(c.len_utf8())
+                    })
+                    .collect();
                 s.replace_range(a..b, &filler);
                 s
             }
@@ -479,7 +615,17 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
     if mentions.iter().any(|m| m.jumuah) {
         mask |= Weekday::Friday.bit();
     }
-    let daily = ["every day", "everyday", "daily", "each day", "chaque jour", "tous les jours", "quotidien", "يوميا", "كل يوم"];
+    let daily = [
+        "every day",
+        "everyday",
+        "daily",
+        "each day",
+        "chaque jour",
+        "tous les jours",
+        "quotidien",
+        "يوميا",
+        "كل يوم",
+    ];
     let tomorrow = ["tomorrow", "demain", "غدا", "بكره", "غدوه"];
     let todayw = ["today", "aujourd'hui", "اليوم"];
     if daily.iter().any(|w| find_word(&t, w, 0).is_some()) {
@@ -487,19 +633,66 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
     } else if mask != 0 {
         recurrence = Some(Recurrence::Weekly { days: mask });
     } else if tomorrow.iter().any(|w| find_word(&t, w, 0).is_some()) {
-        recurrence = Some(Recurrence::Once { date: today.add_days(1) });
+        recurrence = Some(Recurrence::Once {
+            date: today.add_days(1),
+        });
     } else if todayw.iter().any(|w| find_word(&t, w, 0).is_some()) {
         recurrence = Some(Recurrence::Once { date: today });
-    } else if ["ramadan", "رمضان"].iter().any(|w| find_word(&t, w, 0).is_some()) {
+    } else if ["ramadan", "رمضان"]
+        .iter()
+        .any(|w| find_word(&t, w, 0).is_some())
+    {
         recurrence = Some(Recurrence::HijriMonth { month: 9 });
-    } else if ["ayyam al-bid", "white days", "الايام البيض", "ايام البيض"].iter().any(|w| t.contains(w)) {
-        recurrence = Some(Recurrence::HijriMonthly { days: vec![13, 14, 15] });
+    } else if ["ayyam al-bid", "white days", "الايام البيض", "ايام البيض"]
+        .iter()
+        .any(|w| t.contains(w))
+    {
+        recurrence = Some(Recurrence::HijriMonthly {
+            days: vec![13, 14, 15],
+        });
     }
 
     // Kind.
-    let alarm = ["alarm", "wake", "remind", "reminder", "reveil", "rappel", "منبه", "نبهني", "ذكرني", "تذكير", "ايقظني", "صحيني"];
-    let event = ["meeting", "call", "class", "lecture", "appointment", "event", "reunion", "rendez-vous", "cours", "اجتماع", "موعد", "درس", "محاضره", "مكالمه"];
-    let task = ["task", "todo", "tache", "مهمه", "read", "study", "اقرا", "مراجعه"];
+    let alarm = [
+        "alarm",
+        "wake",
+        "remind",
+        "reminder",
+        "reveil",
+        "rappel",
+        "منبه",
+        "نبهني",
+        "ذكرني",
+        "تذكير",
+        "ايقظني",
+        "صحيني",
+    ];
+    let event = [
+        "meeting",
+        "call",
+        "class",
+        "lecture",
+        "appointment",
+        "event",
+        "reunion",
+        "rendez-vous",
+        "cours",
+        "اجتماع",
+        "موعد",
+        "درس",
+        "محاضره",
+        "مكالمه",
+    ];
+    let task = [
+        "task",
+        "todo",
+        "tache",
+        "مهمه",
+        "read",
+        "study",
+        "اقرا",
+        "مراجعه",
+    ];
     let kind = if alarm.iter().any(|w| find_word(&t, w, 0).is_some()) {
         Some(ItemKind::Alarm)
     } else if event.iter().any(|w| find_word(&t, w, 0).is_some()) {
@@ -514,32 +707,113 @@ pub fn parse(input: &str, today: Date) -> Result<Parsed, ParseError> {
 
     // Title: what remains outside the anchor span, minus filler words.
     let title = title_from(&t, &spans);
-    Ok(Parsed { title, start, end, recurrence, kind })
+    Ok(Parsed {
+        title,
+        start,
+        end,
+        recurrence,
+        kind,
+    })
 }
 
 fn title_from(t: &str, spans: &[(usize, usize)]) -> String {
     // Blank every recognised span; the title is the first remaining run of words.
     let blanked: String = t
         .char_indices()
-        .map(|(i, c)| if spans.iter().any(|&(a, b)| i >= a && i < b) { '\u{1}' } else { c })
+        .map(|(i, c)| {
+            if spans.iter().any(|&(a, b)| i >= a && i < b) {
+                '\u{1}'
+            } else {
+                c
+            }
+        })
         .collect();
     let runs: Vec<&str> = blanked.split('\u{1}').collect();
     const FILLER: &[&str] = &[
-        "at", "on", "the", "a", "an", "every", "each", "day", "daily", "everyday", "today", "tomorrow", "and", "from", "prayer",
-        "de", "du", "la", "le", "a", "chaque", "jour", "tous", "les", "jours", "demain", "aujourd'hui", "priere", "pour",
-        "عند", "في", "كل", "يوم", "يوميا", "غدا", "اليوم", "صلاه", "من", "و", "ال", "بـ", "ب", "لي",
-        "before", "after", "avant", "apres", "قبل", "بعد", "min", "mins", "minutes", "minute", "دقيقه", "دقائق",
-        "until", "till", "حتي", "الي", "jusqu'a", "jusqua", "for", "لمده", "pendant", "·",
+        "at",
+        "on",
+        "the",
+        "a",
+        "an",
+        "every",
+        "each",
+        "day",
+        "daily",
+        "everyday",
+        "today",
+        "tomorrow",
+        "and",
+        "from",
+        "prayer",
+        "de",
+        "du",
+        "la",
+        "le",
+        "a",
+        "chaque",
+        "jour",
+        "tous",
+        "les",
+        "jours",
+        "demain",
+        "aujourd'hui",
+        "priere",
+        "pour",
+        "عند",
+        "في",
+        "كل",
+        "يوم",
+        "يوميا",
+        "غدا",
+        "اليوم",
+        "صلاه",
+        "من",
+        "و",
+        "ال",
+        "بـ",
+        "ب",
+        "لي",
+        "before",
+        "after",
+        "avant",
+        "apres",
+        "قبل",
+        "بعد",
+        "min",
+        "mins",
+        "minutes",
+        "minute",
+        "دقيقه",
+        "دقائق",
+        "until",
+        "till",
+        "حتي",
+        "الي",
+        "jusqu'a",
+        "jusqua",
+        "for",
+        "لمده",
+        "pendant",
+        "·",
     ];
-    let wd: Vec<&str> = weekday_words().iter().flat_map(|(w, _)| w.iter().copied()).collect();
+    let wd: Vec<&str> = weekday_words()
+        .iter()
+        .flat_map(|(w, _)| w.iter().copied())
+        .collect();
     let clean = |s: &str| -> String {
         s.split(|c: char| c.is_whitespace() || c == ',' || c == '+' || c == '·')
             .filter(|w| !w.is_empty())
-            .filter(|w| !FILLER.contains(w) && !wd.contains(w) && !w.chars().all(|c| c.is_ascii_digit()))
+            .filter(|w| {
+                !FILLER.contains(w) && !wd.contains(w) && !w.chars().all(|c| c.is_ascii_digit())
+            })
             .collect::<Vec<_>>()
             .join(" ")
     };
-    let title = runs.iter().map(|r| clean(r)).find(|r| !r.is_empty()).unwrap_or_default();
+    let title = runs
+        .iter()
+        .map(|r| clean(r))
+        .find(|r| !r.is_empty())
+        .unwrap_or_default();
     // Capitalize first Latin letter for display.
     let mut cs = title.chars();
     match cs.next() {
@@ -579,16 +853,31 @@ mod tests {
 
         let r = p("asr+30 gym until 10 min before maghrib");
         assert_eq!(r.start, Anchor::new(TimeKey::Asr, 30));
-        assert_eq!(r.end, End::Until { anchor: Anchor::new(TimeKey::Maghrib, -10) });
+        assert_eq!(
+            r.end,
+            End::Until {
+                anchor: Anchor::new(TimeKey::Maghrib, -10)
+            }
+        );
         assert_eq!(r.title, "Gym");
 
         let r = p("leave home 45 min before jumuah");
         assert_eq!(r.start, Anchor::new(TimeKey::Dhuhr, -45));
-        assert_eq!(r.recurrence, Some(Recurrence::Weekly { days: Weekday::Friday.bit() }));
+        assert_eq!(
+            r.recurrence,
+            Some(Recurrence::Weekly {
+                days: Weekday::Friday.bit()
+            })
+        );
 
         let r = p("wake me half an hour before fadjr tomorrow");
         assert_eq!(r.start, Anchor::new(TimeKey::Fajr, -30));
-        assert_eq!(r.recurrence, Some(Recurrence::Once { date: D.add_days(1) }));
+        assert_eq!(
+            r.recurrence,
+            Some(Recurrence::Once {
+                date: D.add_days(1)
+            })
+        );
 
         let r = p("tahajjud");
         assert_eq!(r.start, Anchor::at(TimeKey::LastThird));
@@ -610,13 +899,23 @@ mod tests {
 
         let r = p("درس بعد المغرب حتى العشاء كل يوم");
         assert_eq!(r.start, Anchor::at(TimeKey::Maghrib));
-        assert_eq!(r.end, End::Until { anchor: Anchor::at(TimeKey::Isha) });
+        assert_eq!(
+            r.end,
+            End::Until {
+                anchor: Anchor::at(TimeKey::Isha)
+            }
+        );
         assert_eq!(r.recurrence, Some(Recurrence::Daily));
         assert_eq!(r.title, "درس");
 
         let r = p("قراءة القرآن قبل الظهر بربع ساعة يوم الجمعة");
         assert_eq!(r.start, Anchor::new(TimeKey::Dhuhr, -15));
-        assert_eq!(r.recurrence, Some(Recurrence::Weekly { days: Weekday::Friday.bit() }));
+        assert_eq!(
+            r.recurrence,
+            Some(Recurrence::Weekly {
+                days: Weekday::Friday.bit()
+            })
+        );
 
         let r = p("السحور قبل الإمساك بساعة");
         assert_eq!(r.start, Anchor::new(TimeKey::Imsak, -60));
@@ -626,7 +925,12 @@ mod tests {
     fn french() {
         let r = p("Réunion 30 min après asr jusqu'à 10 min avant maghrib");
         assert_eq!(r.start, Anchor::new(TimeKey::Asr, 30));
-        assert_eq!(r.end, End::Until { anchor: Anchor::new(TimeKey::Maghrib, -10) });
+        assert_eq!(
+            r.end,
+            End::Until {
+                anchor: Anchor::new(TimeKey::Maghrib, -10)
+            }
+        );
         assert_eq!(r.title, "Reunion");
 
         let r = p("réveil un quart d'heure avant sobh chaque jour");

@@ -120,6 +120,9 @@ for name, method, madhab, lat, lon, adhan_name in CASES:
                 raise RuntimeError("method not in adhanpy")
             a = adhan_times(adhan_name, madhab, lat, lon, d)
             diffs = {k: (t[k] - a[k]) / 60.0 for k in a}
+            if method == "umm_al_qura" and d == "2024-03-20":
+                # Ramadan: Umm al-Qura Isha is 120 min after Maghrib; adhanpy does not implement it.
+                diffs.pop("isha")
             # adhanpy rounds to the nearest minute, so up to 0.5 min is expected noise.
             worst_adhan = max(worst_adhan, max(abs(v) for v in diffs.values()))
         except Exception as e:  # noqa

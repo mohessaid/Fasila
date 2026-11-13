@@ -109,8 +109,8 @@ pub fn solar_position(jd_ut: f64) -> SolarPosition {
     let lambda = true_long + d_psi - 20.4898 / 3600.0;
 
     // Obliquity of the ecliptic (Meeus 22.2) + nutation in obliquity.
-    let eps0 = 23.0 + 26.0 / 60.0
-        + (21.448 - t * (46.815_0 + t * (0.000_59 - t * 0.001_813))) / 3600.0;
+    let eps0 =
+        23.0 + 26.0 / 60.0 + (21.448 - t * (46.815_0 + t * (0.000_59 - t * 0.001_813))) / 3600.0;
     let eps = eps0 + d_eps;
 
     let ra = norm360(atan2_d(cos_d(eps) * sin_d(lambda), cos_d(lambda)));
@@ -119,7 +119,9 @@ pub fn solar_position(jd_ut: f64) -> SolarPosition {
     // Greenwich mean sidereal time (Meeus 12.4) in UT, plus equation of the equinoxes.
     let tu = (jd_ut - 2_451_545.0) / 36_525.0;
     let gmst = norm360(
-        280.460_618_37 + 360.985_647_366_29 * (jd_ut - 2_451_545.0) + tu * tu * (0.000_387_933 - tu / 38_710_000.0),
+        280.460_618_37
+            + 360.985_647_366_29 * (jd_ut - 2_451_545.0)
+            + tu * tu * (0.000_387_933 - tu / 38_710_000.0),
     );
     let gast = norm360(gmst + d_psi * cos_d(eps));
 
@@ -127,7 +129,12 @@ pub fn solar_position(jd_ut: f64) -> SolarPosition {
     let eot_deg = norm180(l0 - 0.005_718_3 - ra + d_psi * cos_d(eps));
     let _ = e;
 
-    SolarPosition { right_ascension: ra, declination: dec, sidereal_time: gast, equation_of_time: eot_deg * 4.0 }
+    SolarPosition {
+        right_ascension: ra,
+        declination: dec,
+        sidereal_time: gast,
+        equation_of_time: eot_deg * 4.0,
+    }
 }
 
 /// Local hour angle of the sun (degrees, [-180, 180)) at `jd_ut` for an observer at `lon` (east positive).
@@ -166,7 +173,13 @@ pub enum Side {
 /// Find the instant (JD UT) when the sun's geometric altitude equals `altitude_fn(declination)`
 /// on the given side of the transit `jd_transit`. Returns `None` when the sun never reaches
 /// that altitude that day (polar day/night or very high latitudes).
-pub fn time_for_altitude<F>(jd_transit: f64, lat: f64, lon: f64, side: Side, altitude_fn: F) -> Option<f64>
+pub fn time_for_altitude<F>(
+    jd_transit: f64,
+    lat: f64,
+    lon: f64,
+    side: Side,
+    altitude_fn: F,
+) -> Option<f64>
 where
     F: Fn(f64) -> f64,
 {
@@ -179,7 +192,8 @@ where
     for _ in 0..12 {
         let (h, p) = hour_angle(jd, lon);
         let alt = altitude_fn(p.declination);
-        let cos_h0 = (sin_d(alt) - sin_d(lat) * sin_d(p.declination)) / (cos_d(lat) * cos_d(p.declination));
+        let cos_h0 =
+            (sin_d(alt) - sin_d(lat) * sin_d(p.declination)) / (cos_d(lat) * cos_d(p.declination));
         if !(-1.0..=1.0).contains(&cos_h0) {
             // Event does not happen with the declination at this instant. If we have already
             // converged close by, the event is marginal; otherwise it really does not occur.
@@ -201,7 +215,10 @@ where
 /// Great-circle initial bearing (degrees from true north, clockwise) from one point to another.
 pub fn initial_bearing(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
     let dlon = lon2 - lon1;
-    norm360(atan2_d(sin_d(dlon), cos_d(lat1) * tan_d(lat2) - sin_d(lat1) * cos_d(dlon)))
+    norm360(atan2_d(
+        sin_d(dlon),
+        cos_d(lat1) * tan_d(lat2) - sin_d(lat1) * cos_d(dlon),
+    ))
 }
 
 /// Great-circle distance in kilometres on a spherical Earth (haversine, R = 6371.0088 km).
@@ -223,15 +240,27 @@ mod tests {
         let jd_ut = jd_td - delta_t_seconds(jd_td) / 86_400.0;
         // ΔT in 1992 was ~59 s; our polynomial gives a similar value.
         let p = solar_position(jd_ut);
-        assert!((p.right_ascension - 198.380_83).abs() < 0.005, "ra {}", p.right_ascension);
-        assert!((p.declination - -7.785_07).abs() < 0.005, "dec {}", p.declination);
+        assert!(
+            (p.right_ascension - 198.380_83).abs() < 0.005,
+            "ra {}",
+            p.right_ascension
+        );
+        assert!(
+            (p.declination - -7.785_07).abs() < 0.005,
+            "dec {}",
+            p.declination
+        );
     }
 
     #[test]
     fn equation_of_time_example_28a() {
         // Meeus example 28.a: 1992 Oct 13.0 TD, E = 13m 42.6s.
         let p = solar_position(2_448_908.5);
-        assert!((p.equation_of_time - 13.71).abs() < 0.05, "eot {}", p.equation_of_time);
+        assert!(
+            (p.equation_of_time - 13.71).abs() < 0.05,
+            "eot {}",
+            p.equation_of_time
+        );
     }
 
     #[test]

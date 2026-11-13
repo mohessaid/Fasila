@@ -21,6 +21,11 @@ mod ummalqura_data;
 pub use config::{Config, Location};
 pub use date::{Date, Weekday};
 pub use hijri::{HijriCalendar, HijriDate, HijriProfile, MonthStart};
-pub use method::{Adjustments, HighLatitudeRule, Madhab, Method, MidnightMethod, Params, PolarRule, Rounding, Twilight};
+pub use method::{
+    Adjustments, HighLatitudeRule, Madhab, Method, MidnightMethod, Params, PolarRule, Rounding,
+    Twilight,
+};
 pub use prayer::{compute, qibla, Coordinates, PrayerTimes, TimeKey};
-pub use schedule::{Anchor, Day, End, Engine, Item, ItemKind, Occurrence, PrayerGuard, Recurrence, Slot};
+pub use schedule::{
+    Anchor, Day, End, Engine, Item, ItemKind, Occurrence, PrayerGuard, Recurrence, Slot,
+};

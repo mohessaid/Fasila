@@ -19,7 +19,8 @@ use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_notification::NotificationExt;
 
-const FEED_URL: &str = "https://raw.githubusercontent.com/mohessaid/fasila/main/data/hijri/announcements.json";
+const FEED_URL: &str =
+    "https://raw.githubusercontent.com/mohessaid/fasila/main/data/hijri/announcements.json";
 const BUNDLED_FEED: &str = include_str!("../../../../data/hijri/announcements.json");
 const CITIES: &str = include_str!("../../../../data/cities.json");
 
@@ -94,7 +95,9 @@ fn local_today(cfg: &Config) -> Date {
     let offset_secs = match tz_of(cfg) {
         Some(tz) => {
             use chrono::Offset;
-            tz.offset_from_utc_datetime(&now.naive_utc()).fix().local_minus_utc()
+            tz.offset_from_utc_datetime(&now.naive_utc())
+                .fix()
+                .local_minus_utc()
         }
         None => chrono::Local::now().offset().local_minus_utc(),
     };
@@ -120,7 +123,10 @@ fn config_of(s: &Store) -> Result<Config, String> {
 #[tauri::command]
 fn load(state: Shared) -> Value {
     let s = state.store.lock().unwrap();
-    let methods: Vec<Value> = Method::ALL.iter().map(|m| json!({ "id": m.id(), "name": m.display_name() })).collect();
+    let methods: Vec<Value> = Method::ALL
+        .iter()
+        .map(|m| json!({ "id": m.id(), "name": m.display_name() }))
+        .collect();
     let today = s.config.as_ref().map(|c| local_today(c).to_string());
     json!({
         "config": s.config,
@@ -133,13 +139,21 @@ fn load(state: Shared) -> Value {
 }
 
 #[tauri::command]
-fn default_config(name: String, latitude: f64, longitude: f64, timezone: String, country: String) -> Config {
+fn default_config(
+    name: String,
+    latitude: f64,
+    longitude: f64,
+    timezone: String,
+    country: String,
+) -> Config {
     Config::for_place(&name, latitude, longitude, &timezone, &country)
 }
 
 #[tauri::command]
 fn method_params(method: String) -> Result<fasila_core::Params, String> {
-    Method::from_id(&method).map(fasila_core::Params::for_method).ok_or_else(|| "unknown method".into())
+    Method::from_id(&method)
+        .map(fasila_core::Params::for_method)
+        .ok_or_else(|| "unknown method".into())
 }
 
 #[tauri::command]
@@ -178,14 +192,22 @@ fn days(state: Shared, start: String, count: u32) -> Result<Vec<schedule::Day>, 
     let cfg = config_of(&state.store.lock().unwrap())?;
     let e = cfg.engine();
     let d0 = parse_date(&start)?;
-    Ok((0..count.min(400) as i64).map(|i| e.day(d0.add_days(i))).collect())
+    Ok((0..count.min(400) as i64)
+        .map(|i| e.day(d0.add_days(i)))
+        .collect())
 }
 
 #[tauri::command]
-fn occurrences(state: Shared, start: String, count: u32) -> Result<Vec<schedule::Occurrence>, String> {
+fn occurrences(
+    state: Shared,
+    start: String,
+    count: u32,
+) -> Result<Vec<schedule::Occurrence>, String> {
     let s = state.store.lock().unwrap();
     let cfg = config_of(&s)?;
-    Ok(cfg.engine().occurrences(&s.items, parse_date(&start)?, count.min(62)))
+    Ok(cfg
+        .engine()
+        .occurrences(&s.items, parse_date(&start)?, count.min(62)))
 }
 
 /// Resolve a draft item for a date (live preview in the composer).
@@ -247,20 +269,33 @@ fn fetch_feed() -> Result<Feed, String> {
 fn refresh_hijri(state: Shared) -> Result<Value, String> {
     let (feed, online) = match fetch_feed() {
         Ok(f) => (f, true),
-        Err(_) => (serde_json::from_str(BUNDLED_FEED).map_err(|e| e.to_string())?, false),
+        Err(_) => (
+            serde_json::from_str(BUNDLED_FEED).map_err(|e| e.to_string())?,
+            false,
+        ),
     };
     let mut s = state.store.lock().unwrap();
-    let Some(cfg) = s.config.as_mut() else { return Err("not configured".into()) };
+    let Some(cfg) = s.config.as_mut() else {
+        return Err("not configured".into());
+    };
     let country = cfg.location.country.clone();
     let changed = feed.apply(&country, &mut cfg.hijri);
-    let source = feed.regions.get(&country.to_ascii_uppercase()).map(|r| r.source.clone());
+    let source = feed
+        .regions
+        .get(&country.to_ascii_uppercase())
+        .map(|r| r.source.clone());
     state.save(&s)?;
     Ok(json!({ "changed": changed, "online": online, "updated": feed.updated, "source": source }))
 }
 
 #[tauri::command]
 fn test_notification(app: AppHandle, title: String, body: String) -> Result<(), String> {
-    app.notification().builder().title(title).body(body).show().map_err(|e| e.to_string())
+    app.notification()
+        .builder()
+        .title(title)
+        .body(body)
+        .show()
+        .map_err(|e| e.to_string())
 }
 
 // ---------------------------------------------------------------------------
@@ -304,13 +339,24 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
     let day = e.day(date);
     let mut out = Vec::new();
     for (i, k) in TimeKey::PRAYERS.iter().enumerate() {
-        let Some(at) = day.times.get(*k) else { continue };
+        let Some(at) = day.times.get(*k) else {
+            continue;
+        };
         let jumuah = *k == TimeKey::Dhuhr && day.weekday == fasila_core::Weekday::Friday;
-        let name = if jumuah { t(&lang, "Jumu'ah", "الجمعة", "Joumou'a") } else { schedule::key_name(*k, &lang).to_string() };
+        let name = if jumuah {
+            t(&lang, "Jumu'ah", "الجمعة", "Joumou'a")
+        } else {
+            schedule::key_name(*k, &lang).to_string()
+        };
         if store.prefs.adhan[i] {
             out.push(Alert {
                 at,
-                title: t(&lang, &format!("{name} — it's time to pray"), &format!("حان الآن موعد صلاة {name}"), &format!("{name} — c'est l'heure de la prière")),
+                title: t(
+                    &lang,
+                    &format!("{name} — it's time to pray"),
+                    &format!("حان الآن موعد صلاة {name}"),
+                    &format!("{name} — c'est l'heure de la prière"),
+                ),
                 body: local_hm(cfg, at),
             });
         }
@@ -318,8 +364,18 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
         if pre > 0 && store.prefs.adhan[i] {
             out.push(Alert {
                 at: at - pre * 60,
-                title: t(&lang, &format!("{name} in {pre} min"), &format!("{name} بعد {pre} دقيقة"), &format!("{name} dans {pre} min")),
-                body: t(&lang, "Prepare for prayer (wudu).", "استعد للصلاة (الوضوء).", "Préparez-vous (ablutions)."),
+                title: t(
+                    &lang,
+                    &format!("{name} in {pre} min"),
+                    &format!("{name} بعد {pre} دقيقة"),
+                    &format!("{name} dans {pre} min"),
+                ),
+                body: t(
+                    &lang,
+                    "Prepare for prayer (wudu).",
+                    "استعد للصلاة (الوضوء).",
+                    "Préparez-vous (ablutions).",
+                ),
             });
         }
     }
@@ -327,8 +383,18 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
     if let (true, Some(sr)) = (sw > 0, day.times.sunrise) {
         out.push(Alert {
             at: sr - sw * 60,
-            title: t(&lang, &format!("Fajr ends in {sw} min"), &format!("ينتهي وقت الفجر بعد {sw} دقيقة"), &format!("Fajr se termine dans {sw} min")),
-            body: t(&lang, "Sunrise is approaching.", "اقترب الشروق.", "Le lever du soleil approche."),
+            title: t(
+                &lang,
+                &format!("Fajr ends in {sw} min"),
+                &format!("ينتهي وقت الفجر بعد {sw} دقيقة"),
+                &format!("Fajr se termine dans {sw} min"),
+            ),
+            body: t(
+                &lang,
+                "Sunrise is approaching.",
+                "اقترب الشروق.",
+                "Le lever du soleil approche.",
+            ),
         });
     }
     for o in e.occurrences_on(&store.items, &day) {
@@ -341,12 +407,21 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
             ItemKind::Task => "✓",
             ItemKind::Event => "◷",
         };
-        out.push(Alert { at: o.start, title: format!("{icon} {}", o.title), body: when.clone() });
+        out.push(Alert {
+            at: o.start,
+            title: format!("{icon} {}", o.title),
+            body: when.clone(),
+        });
         if let Some(item) = store.items.iter().find(|i| i.id == o.item_id) {
             if let Some(m) = item.remind_before_minutes.filter(|m| *m > 0) {
                 out.push(Alert {
                     at: o.start - m as i64 * 60,
-                    title: t(&lang, &format!("Soon: {}", o.title), &format!("قريبًا: {}", o.title), &format!("Bientôt : {}", o.title)),
+                    title: t(
+                        &lang,
+                        &format!("Soon: {}", o.title),
+                        &format!("قريبًا: {}", o.title),
+                        &format!("Bientôt : {}", o.title),
+                    ),
                     body: when,
                 });
             }
@@ -363,8 +438,17 @@ fn next_prayer_label(store: &Store, cfg: &Config) -> Option<String> {
     let (k, at) = (0..2).find_map(|i| e.day(today.add_days(i)).times.next_prayer(now))?;
     let mins = (at - now + 59) / 60;
     let (h, m) = (mins / 60, mins % 60);
-    let left = if h > 0 { format!("{h}h {m:02}m") } else { format!("{m}m") };
-    Some(format!("Fasila — {} {} ({})", schedule::key_name(k, &lang), local_hm(cfg, at), left))
+    let left = if h > 0 {
+        format!("{h}h {m:02}m")
+    } else {
+        format!("{m}m")
+    };
+    Some(format!(
+        "Fasila — {} {} ({})",
+        schedule::key_name(k, &lang),
+        local_hm(cfg, at),
+        left
+    ))
 }
 
 fn spawn_notifier(app: AppHandle, state: Arc<AppState>) {
@@ -390,7 +474,12 @@ fn spawn_notifier(app: AppHandle, state: Arc<AppState>) {
             // After sleep/suspend `now - last` is large; never replay more than 2 minutes of alerts.
             let from = last.max(now - 120);
             for a in alerts.into_iter().filter(|a| a.at > from && a.at <= now) {
-                let _ = app.notification().builder().title(&a.title).body(&a.body).show();
+                let _ = app
+                    .notification()
+                    .builder()
+                    .title(&a.title)
+                    .body(&a.body)
+                    .show();
             }
             if let (Some(label), Some(tray)) = (label, app.tray_by_id("main")) {
                 let _ = tray.set_tooltip(Some(&label));
@@ -411,9 +500,14 @@ fn show_main(app: &AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_main(app)
+        }))
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--hidden"])))
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--hidden"]),
+        ))
         .setup(|app| {
             let dir = app.path().app_data_dir().expect("app data dir");
             let path = dir.join("fasila.json");
@@ -421,7 +515,10 @@ pub fn run() {
                 .ok()
                 .and_then(|b| serde_json::from_slice(&b).ok())
                 .unwrap_or_default();
-            let state = Arc::new(AppState { store: Mutex::new(store), path });
+            let state = Arc::new(AppState {
+                store: Mutex::new(store),
+                path,
+            });
             app.manage(state.clone());
 
             let show = MenuItem::with_id(app, "show", "Show Fasila", true, None::<&str>)?;
@@ -438,7 +535,11 @@ pub fn run() {
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, ev| {
-                    if let TrayIconEvent::Click { button: MouseButton::Left, .. } = ev {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        ..
+                    } = ev
+                    {
                         show_main(tray.app_handle());
                     }
                 })

@@ -9,7 +9,11 @@ use serde::{Deserialize, Serialize};
 
 /// Built-in calculation methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Method {
     /// Muslim World League. Fajr 18°, Isha 17°.
     MuslimWorldLeague,
@@ -106,7 +110,11 @@ impl Method {
     }
 
     pub fn from_id(id: &str) -> Option<Method> {
-        Method::ALL.iter().copied().chain([Method::Custom]).find(|m| m.id() == id)
+        Method::ALL
+            .iter()
+            .copied()
+            .chain([Method::Custom])
+            .find(|m| m.id() == id)
     }
 
     pub fn display_name(self) -> &'static str {
@@ -163,7 +171,11 @@ impl Method {
 
 /// How Isha (or Maghrib) is determined.
 #[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(tag = "type", content = "value", rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "type", content = "value", rename_all = "snake_case")
+)]
 pub enum Twilight {
     /// Sun depression angle below the horizon, in degrees.
     Angle(f64),
@@ -173,7 +185,11 @@ pub enum Twilight {
 
 /// Juristic school for Asr.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Madhab {
     /// Shafi'i, Maliki, Hanbali, Jafari: shadow = object length + noon shadow.
     Standard,
@@ -192,7 +208,11 @@ impl Madhab {
 
 /// Rule applied when Fajr/Isha twilight is undefined or unreasonable (high latitudes).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum HighLatitudeRule {
     /// Choose automatically from latitude (seventh of night above 48°, middle of night otherwise).
     Auto,
@@ -208,7 +228,11 @@ pub enum HighLatitudeRule {
 
 /// Rule applied when the sun does not rise or set at all (polar day/night).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum PolarRule {
     /// "Aqrab al-bilād": use the times of the nearest latitude (±65°) where events occur.
     NearestLatitude,
@@ -218,7 +242,11 @@ pub enum PolarRule {
 
 /// How the end of the night (midnight) is computed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum MidnightMethod {
     /// Midpoint between sunset and next sunrise.
     Standard,
@@ -228,7 +256,11 @@ pub enum MidnightMethod {
 
 /// Rounding policy applied to output times.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 pub enum Rounding {
     /// Keep full second precision.
     None,
@@ -252,7 +284,14 @@ pub struct Adjustments {
 }
 
 impl Adjustments {
-    pub const ZERO: Adjustments = Adjustments { fajr: 0.0, sunrise: 0.0, dhuhr: 0.0, asr: 0.0, maghrib: 0.0, isha: 0.0 };
+    pub const ZERO: Adjustments = Adjustments {
+        fajr: 0.0,
+        sunrise: 0.0,
+        dhuhr: 0.0,
+        asr: 0.0,
+        maghrib: 0.0,
+        isha: 0.0,
+    };
 }
 
 /// Full set of calculation parameters.
@@ -316,7 +355,9 @@ impl Params {
             Method::Dubai => (18.2, Twilight::Angle(18.2)),
             Method::Kuwait => (18.0, Twilight::Angle(17.5)),
             Method::Qatar => (18.0, Twilight::Minutes(90.0)),
-            Method::Singapore | Method::Malaysia | Method::Indonesia => (20.0, Twilight::Angle(18.0)),
+            Method::Singapore | Method::Malaysia | Method::Indonesia => {
+                (20.0, Twilight::Angle(18.0))
+            }
             Method::France => (12.0, Twilight::Angle(12.0)),
             Method::Turkey => (18.0, Twilight::Angle(17.0)),
             Method::Russia => (16.0, Twilight::Angle(15.0)),
@@ -337,11 +378,21 @@ impl Params {
                 p.midnight = MidnightMethod::Jafari;
             }
             Method::Turkey => {
-                p.method_adjustments =
-                    Adjustments { fajr: 0.0, sunrise: -7.0, dhuhr: 5.0, asr: 4.0, maghrib: 7.0, isha: 0.0 };
+                p.method_adjustments = Adjustments {
+                    fajr: 0.0,
+                    sunrise: -7.0,
+                    dhuhr: 5.0,
+                    asr: 4.0,
+                    maghrib: 7.0,
+                    isha: 0.0,
+                };
             }
             Method::MoonsightingCommittee => {
-                p.method_adjustments = Adjustments { dhuhr: 5.0, maghrib: 3.0, ..Adjustments::ZERO };
+                p.method_adjustments = Adjustments {
+                    dhuhr: 5.0,
+                    maghrib: 3.0,
+                    ..Adjustments::ZERO
+                };
             }
             _ => {}
         }

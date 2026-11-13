@@ -8,7 +8,11 @@ fn main() {
     let a: Vec<String> = std::env::args().collect();
     let method = Method::from_id(&a[1]).expect("method");
     let mut p = Params::for_method(method);
-    p.madhab = if a[2] == "hanafi" { Madhab::Hanafi } else { Madhab::Standard };
+    p.madhab = if a[2] == "hanafi" {
+        Madhab::Hanafi
+    } else {
+        Madhab::Standard
+    };
     p.rounding = Rounding::None;
     let c = Coordinates::new(a[3].parse().unwrap(), a[4].parse().unwrap());
     let d0 = Date::parse_iso(&a[5]).unwrap();
