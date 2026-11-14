@@ -58,7 +58,7 @@
       <ul class="items">
         {#each ordered as item (item.id)}
           {@const occ = occById[item.id]}
-          <li class:off={!item.enabled} class:editing={editing?.id === item.id}>
+          <li class="frost" class:off={!item.enabled} class:lit={editing?.id === item.id}>
             <span class="when tabular">{occ ? app.fmt.time(occ.start) : "—"}</span>
             <button class="body" onclick={() => (editing = item)} title={app.t.edit}>
               <span class="title"><Icon name={item.kind} size={14} /> {item.title}</span>
@@ -84,11 +84,9 @@
   .panel { padding: 26px 30px; }
   .strip-label { margin-top: 26px; margin-bottom: 0; }
   .empty { margin: 0; color: var(--ink-2); }
-  .items { list-style: none; margin: 0; padding: 0; }
-  .items li { display: grid; grid-template-columns: 56px 1fr auto auto; gap: 16px; align-items: center; padding: 14px 0; }
-  .items li + li { border-top: 1px solid var(--hairline); }
+  .items { list-style: none; margin: 0 -16px; padding: 0; display: grid; gap: 2px; }
+  .items li { display: grid; grid-template-columns: 56px 1fr auto auto; gap: 16px; align-items: center; padding: 13px 16px; }
   .items li.off { opacity: 0.45; }
-  .items li.editing .title { color: var(--accent); }
   .when { color: var(--ink-2); font-size: 15px; }
   .body { display: grid; gap: 3px; text-align: start; background: none; border: 0; padding: 0; }
   .title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
@@ -100,8 +98,8 @@
   .del:hover { color: var(--danger); }
   .switch { position: relative; width: 34px; height: 20px; }
   .switch input { opacity: 0; position: absolute; inset: 0; margin: 0; cursor: pointer; }
-  .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--glass-hover); pointer-events: none; transition: background 0.2s; }
+  .switch span { position: absolute; inset: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); pointer-events: none; transition: background 0.2s, box-shadow 0.2s; }
   .switch span::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink-2); transition: inset-inline-start 0.2s, background 0.2s; }
-  .switch input:checked + span { background: var(--accent); }
+  .switch input:checked + span { background: linear-gradient(180deg, #ffb27a, var(--accent)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 12px rgba(255, 155, 84, 0.3); }
   .switch input:checked + span::after { inset-inline-start: 17px; background: var(--accent-ink); }
 </style>

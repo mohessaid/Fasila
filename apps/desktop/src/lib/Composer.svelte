@@ -252,30 +252,45 @@
 <style>
   .composer { display: grid; gap: 10px; }
   .line {
-    display: flex; align-items: center; gap: 12px; padding: 4px 2px 12px;
-    border-bottom: 1px solid var(--hairline); color: var(--ink-3); transition: border-color 0.2s, color 0.2s;
+    display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: var(--ink-3); transition: background 0.25s, box-shadow 0.25s, color 0.25s;
   }
-  .line:focus-within { border-color: var(--accent); color: var(--accent); }
+  .line:hover { background: rgba(255, 255, 255, 0.09); }
+  .line:focus-within {
+    color: var(--accent);
+    background: radial-gradient(120% 200% at 50% -40%, rgba(255, 155, 84, 0.16), transparent 60%), rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 12px 30px rgba(255, 155, 84, 0.14);
+  }
   .line input { flex: 1; background: none; border: 0; outline: none; color: var(--ink); font-size: 22px; font-weight: 400; letter-spacing: -0.01em; padding: 4px 0; }
   .line input::placeholder { color: var(--ink-3); }
-  .hint { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+  .hint { margin: 0 4px; font-size: 12.5px; color: var(--ink-3); }
   .hint.err { color: var(--warn); }
-  .sentence { margin: 10px 0 0; font-size: 17px; line-height: 2.1; color: var(--ink-2); }
-  .sentence .title { min-width: 6ch; max-width: 26ch; }
+  .sentence { margin: 8px 0 0; font-size: 16px; line-height: 2.4; color: var(--ink-2); }
+  .sentence .title { min-width: 6ch; max-width: 26ch; font-weight: 600; }
   .sentence .title::placeholder { color: var(--ink-3); font-weight: 500; }
-  .sentence .num { width: 3.2ch; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .sentence .num { width: 4.4ch; padding: 3px 6px; text-align: center; -moz-appearance: textfield; appearance: textfield; }
   .sentence .num::-webkit-inner-spin-button { display: none; }
-  .sentence .token:focus { outline: none; color: var(--accent); }
-  .sep { color: var(--ink-3); margin: 0 6px; }
+
+  .sep { color: var(--ink-3); margin: 0 4px; }
   .nowrap { white-space: nowrap; }
   .days { display: flex; gap: 4px; flex-wrap: wrap; }
-  .days button { background: none; border: 0; color: var(--ink-3); padding: 6px 10px; border-radius: 999px; font-size: 13.5px; }
-  .days button:hover { color: var(--ink); }
-  .days button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .days button { background: none; border: 0; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; font-size: 13.5px; transition: background 0.2s; }
+  .days button:hover { background: rgba(255, 255, 255, 0.08); }
+  .days button.on {
+    color: var(--ink); font-weight: 600;
+    background: radial-gradient(120% 160% at 50% -20%, rgba(255, 155, 84, 0.3), transparent 70%), rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 6px 16px rgba(255, 155, 84, 0.16);
+  }
   .result { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
   .read { display: grid; gap: 4px; font-size: 14.5px; }
   .read strong { font-size: 16px; font-weight: 600; color: var(--ink); }
   .clash { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--warn); font-size: 13.5px; }
-  .link { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+  .link {
+    border: 0; padding: 4px 12px; border-radius: 999px; color: var(--ink); font-weight: 600; font-size: 13px;
+    background: radial-gradient(120% 160% at 50% -20%, rgba(255, 155, 84, 0.32), transparent 70%), rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 16px rgba(255, 155, 84, 0.16);
+  }
+  .link:hover { background: radial-gradient(120% 160% at 50% -20%, rgba(255, 155, 84, 0.45), transparent 70%), rgba(255, 255, 255, 0.2); }
   .actions { display: flex; gap: 8px; }
 </style>

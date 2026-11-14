@@ -64,6 +64,8 @@
       {#each days as d}
         <button
           class="cell"
+          class:lit={d.date === selected}
+          class:pane={d.date === app.today && d.date !== selected}
           class:today={d.date === app.today}
           class:sel={d.date === selected}
           class:fri={d.weekday === "friday"}
@@ -105,7 +107,7 @@
   .title { text-align: center; }
   .g { font-size: 22px; font-weight: 600; }
   .nav-btn { background: none; border: 0; color: var(--ink-2); border-radius: 999px; width: 38px; height: 38px; display: grid; place-items: center; }
-  .nav-btn:hover { background: var(--glass-strong); color: var(--ink); }
+  .nav-btn:hover { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14); color: var(--ink); }
   .nav-btn:first-child :global(svg) { transform: scaleX(-1); }
   :global([dir="rtl"]) .nav-btn:first-child :global(svg) { transform: none; }
   :global([dir="rtl"]) .nav-btn:last-child :global(svg) { transform: scaleX(-1); }
@@ -116,12 +118,12 @@
     display: grid; align-content: center; justify-items: center; gap: 3px; padding: 4px;
     transition: background 0.15s;
   }
-  .cell:hover { background: var(--glass-strong); }
+  .cell:hover:not(.lit) { background: rgba(255, 255, 255, 0.06); }
   .cell.fri .gd { color: var(--accent); }
-  .cell.today .gd { box-shadow: 0 0 0 1.5px var(--accent); }
-  .cell.sel { background: var(--ink); }
-  .cell.sel .gd, .cell.sel .hd { color: var(--accent-ink); }
-  .gd { font-size: 16px; font-weight: 500; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+  .cell.today .gd { color: var(--accent); font-weight: 700; }
+  .cell.sel .gd { font-weight: 700; }
+  .cell.sel .hd { color: var(--ink-2); }
+  .gd { font-size: 16px; font-weight: 500; }
   .hd { font-size: 11px; color: var(--ink-3); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cell.hstart .hd { color: var(--accent); font-weight: 600; }
   .occ-dot { position: absolute; bottom: 6px; inset-inline-start: 50%; translate: -50% 0; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
@@ -132,7 +134,7 @@
   .times { display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; margin: 6px 0 0; font-size: 14.5px; }
   .times dt { color: var(--ink-2); }
   .times dd { margin: 0; font-weight: 500; }
-  .occ-list { list-style: none; padding: 12px 0 0; margin: 0; border-top: 1px solid var(--hairline); display: grid; gap: 8px; }
+  .occ-list { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; }
   .occ-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 </style>

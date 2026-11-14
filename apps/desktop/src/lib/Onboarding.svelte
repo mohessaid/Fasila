@@ -33,7 +33,7 @@
     <p class="muted">{app.t.welcomeBody}</p>
     <div class="langs">
       {#each [["en", "English"], ["ar", "العربية"], ["fr", "Français"]] as [code, label]}
-        <button class="chip" class:on={app.lang === code} onclick={() => app.savePrefs({ ...app.prefs, lang: code as "en" })}>{label}</button>
+        <button class="chip" class:on={app.lang === code} class:lit={app.lang === code} onclick={() => app.savePrefs({ ...app.prefs, lang: code as "en" })}>{label}</button>
       {/each}
     </div>
     {#if !manual}
@@ -70,7 +70,7 @@
   p { margin: 0; }
   .mark { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; border: 6px solid var(--ink-3); border-top-color: var(--accent); border-inline-end-color: var(--accent); transform: rotate(-20deg); }
   .langs { display: flex; gap: 8px; justify-content: center; }
-  .langs .on { background: var(--accent); color: var(--accent-ink); }
+  .langs .on { color: var(--ink); font-weight: 600; }
   .results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
   .results button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; text-align: start; padding: 10px 14px; border-radius: 14px; background: var(--glass); border: 1px solid transparent; }
   .results button:hover { background: var(--glass-hover); }

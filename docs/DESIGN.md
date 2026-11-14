@@ -14,11 +14,9 @@
 4. **RTL is first-class.** Arabic is not a translation afterthought. Layouts use
    logical directions (start/end), icons with direction mirror, numerals follow
    the locale (Arabic-Indic in `ar`), and the sun's path runs right-to-left in RTL.
-5. **Restraint over decoration.** No outlines around every element, no box inside
-   a box, no coloured stripe on the active row. Structure comes from type scale,
-   spacing and hairlines. A surface (veil) is used only where text must stay legible
-   over a bright sky, and then one per region. The active or next item is shown by
-   colour and weight, not by a frame.
+5. **One design language.** This is a glass system: depth comes from layered
+   frosted panes and state from how lit a pane is. Don't borrow markers from other
+   systems (side stripes, underlines, indicator dots, outline rings, hairline dividers).
 6. **Honest accuracy.** When a time is estimated (high-latitude rule, polar
    fallback), the UI says so with a small badge and an explanation.
 
@@ -56,16 +54,27 @@ interpolated, so a winter Isha at 18:30 is as dark as a summer Isha at 22:00.
 **Stars:** 45, at random positions in the upper 80 % of the sky, each 0.5–2.5 px,
 twinkling between 58 % and 100 % of its own maximum opacity (0.28–0.9) over 2–6 s.
 The whole field fades by `progress`: 0.65 → 0.2 by sunrise, gone by 0.18,
-returning from 0.7 to 0.85 by Maghrib and 1.0 at night.
+appearing only after sunset (0 at Maghrib → 0.85 at Isha → 1.0 at night).
 
-## Surfaces ("veil")
+## Glass system
 
-- No borders. A veil is a soft dark wash (`#060A14` at 30 % → 42 %, top to bottom)
-  over a backdrop blur (iOS `.ultraThinMaterial` dark; web `backdrop-filter: blur(26px)`).
-- Radius 24. One veil per region (e.g. the Today timeline, the composer, the item list).
-- Rows inside a veil are separated by 1 px hairlines (white at 9 %), never boxed.
-- Inputs: filled (white 8 %), no border, with a 1.5 px accent ring on focus.
-- Respect *Reduce Transparency* (solid veil) and *Reduce Motion* (no twinkle, glow or shimmer).
+Everything is expressed through glass. There are three levels and nothing else:
+no outlines, no side stripes, no underlines, no indicator dots, no hairline dividers.
+
+| Level | Use | Recipe (web; native equivalents in brackets) |
+|---|---|---|
+| **Panel** | the frosted sheet a region sits on | blur 26 + white 7.5 %→3 % over a 34 % `#060A14` tint; specular top edge `inset 0 1px 0 white 14 %`; 0.5 px inner rim white 7 %; soft drop shadow [`.ultraThinMaterial` dark] |
+| **Pane** | secondary state (current prayer, today in the calendar), hover | white 6 %, specular edge white 8 % |
+| **Lit pane** | primary state (next prayer, active tab, selected day, focused field, chosen option) | blur 18 + brightness 1.18; white 20 %→9 % with a warm accent glow from the top (`radial #FF9B54 22 %`); specular edge white 38 %; accent-tinted shadow |
+
+- Rows inside a panel are transparent until hovered (they frost on hover).
+  They are separated by space, not by lines.
+- State is shown by **how lit a pane is**. The whole card lights up; never mark
+  an edge.
+- Editable values in the composer sentence are small frosted chips. The prayer
+  anchor is the lit chip.
+- The primary button is a lit accent pill with a specular edge.
+- Respect *Reduce Transparency* (solid panes) and *Reduce Motion*.
 
 ## Celestial scene (Today hero)
 
@@ -100,8 +109,8 @@ A 268-unit-high scene above the countdown:
 ## Scheduling UX
 
 **Composer:** a large borderless line ("Meeting 30 min after Asr for 1 hour") above
-the same item written as a sentence of editable words. Each word is underlined in the
-accent colour and opens a native picker:
+the same item written as a sentence of editable words. Each value is a small frosted
+chip that opens a native picker, and the prayer anchor is the lit chip:
 
 > **Event** *Gym* · **10** min **before** **Maghrib** · for **60** min · **every day**
 

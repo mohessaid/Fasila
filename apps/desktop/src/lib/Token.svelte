@@ -25,16 +25,24 @@
 </span>
 
 <style>
-  .tok { position: relative; display: inline-block; white-space: nowrap; }
-  .text {
-    color: var(--ink); font-weight: 600;
-    text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
-    text-decoration-thickness: 1.5px; text-underline-offset: 6px;
+  .tok {
+    position: relative; display: inline-block; white-space: nowrap; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: background 0.2s, box-shadow 0.2s;
   }
-  .strong .text { color: var(--accent); }
-  .quiet .text { color: var(--ink-2); font-weight: 500; text-decoration-color: var(--hairline); }
-  .tok:hover .text { color: var(--accent); }
-  .tok:focus-within .text { color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 3px; border-radius: 4px; }
+  .text { display: inline-block; padding: 3px 12px; color: var(--ink); font-weight: 600; }
+  .tok:hover { background: rgba(255, 255, 255, 0.14); }
+  /* The prayer anchor is the lit word of the sentence. */
+  .strong {
+    background: radial-gradient(120% 160% at 50% -20%, rgba(255, 155, 84, 0.35), transparent 70%), rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 16px rgba(255, 155, 84, 0.18);
+  }
+  .quiet { background: rgba(255, 255, 255, 0.04); }
+  .quiet .text { color: var(--ink-2); font-weight: 500; }
+  .tok:focus-within {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 8px 20px rgba(255, 155, 84, 0.22);
+  }
   select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font: inherit; appearance: none; -webkit-appearance: none; }
   select option { color: #111; background: #fff; }
 </style>

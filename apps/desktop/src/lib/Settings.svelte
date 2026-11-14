@@ -138,7 +138,7 @@
     <div class="field">{app.t.dayAdjust}
       <div class="seg">
         {#each [-2, -1, 0, 1, 2] as d}
-          <button class:on={cfg.hijri.day_adjustment === d} onclick={() => { cfg.hijri.day_adjustment = d; persist(); }}>{d > 0 ? "+" : ""}{app.fmt.num(d)}</button>
+          <button class:on={cfg.hijri.day_adjustment === d} class:lit={cfg.hijri.day_adjustment === d} onclick={() => { cfg.hijri.day_adjustment = d; persist(); }}>{d > 0 ? "+" : ""}{app.fmt.num(d)}</button>
         {/each}
       </div>
     </div>
@@ -215,7 +215,7 @@
   .seg { display: flex; background: var(--glass-strong); border-radius: 999px; overflow: hidden; width: max-content; padding: 2px; }
   .seg button { border-radius: 999px; }
   .seg button { background: transparent; border: 0; padding: 8px 14px; color: var(--ink); }
-  .seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .seg button.on { color: var(--ink); font-weight: 700; border-radius: 999px; }
   .toggles { display: grid; gap: 8px; }
   .tog { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 14px; }
   .tog input { width: 18px; height: 18px; accent-color: var(--accent); }

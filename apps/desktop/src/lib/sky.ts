@@ -35,13 +35,14 @@ export function skyColors(progress: number, tod: TimeOfDay): Stops {
   return mix(a.colors, b.colors, (p - a.at) / (b.at - a.at));
 }
 
-/** Stars fade out after dawn and come back after Maghrib. */
+/** Stars fade out between Fajr and shortly after sunrise, and appear only after
+ *  sunset: from Maghrib (0.8) to full by Isha (0.9). */
 export function starOpacity(p: number): number {
   if (p < 0.08) return 0.65 - (p / 0.08) * 0.45;
   if (p < 0.18) return 0.2 - ((p - 0.08) / 0.1) * 0.2;
-  if (p < 0.7) return 0;
-  if (p < 0.82) return ((p - 0.7) / 0.12) * 0.85;
-  return 0.85 + Math.min(0.15, ((p - 0.82) / 0.18) * 0.15);
+  if (p < 0.8) return 0;
+  if (p < 0.9) return ((p - 0.8) / 0.1) * 0.85;
+  return 0.85 + Math.min(0.15, ((p - 0.9) / 0.1) * 0.15);
 }
 
 export interface SkyState {

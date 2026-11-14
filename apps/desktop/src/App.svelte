@@ -59,6 +59,7 @@
             <button
               role="tab"
               class:active={app.tab === tab.id}
+              class:lit={app.tab === tab.id}
               aria-selected={app.tab === tab.id}
               title={`${app.t[tab.id]} (Ctrl+${i + 1})`}
               onclick={() => (app.tab = tab.id)}
@@ -104,18 +105,12 @@
   }
   .tabs { display: flex; gap: 2px; margin-inline: auto; }
   .tabs button {
-    position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
     background: transparent; border: 0; color: var(--ink-3); font-weight: 500; font-size: 14.5px;
-    transition: color 0.2s;
+    transition: color 0.2s, background 0.25s, box-shadow 0.25s;
   }
-  .tabs button :global(svg) { opacity: 0.8; }
-  .tabs button:hover { color: var(--ink-2); }
-  .tabs button.active { color: var(--ink); }
-  .tabs button.active::after {
-    content: ""; position: absolute; bottom: 2px; inset-inline-start: 50%; translate: -50% 0;
-    width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
-  }
-  :global([dir="rtl"]) .tabs button.active::after { translate: 50% 0; }
+  .tabs button:hover:not(.active) { color: var(--ink-2); background: rgba(255, 255, 255, 0.05); }
+  .tabs button.active { color: var(--ink); font-weight: 600; border-radius: 999px; }
   .place { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   main { overflow: auto; min-height: 0; border-radius: var(--radius); }
   .page { animation: rise 0.35s ease both; }
