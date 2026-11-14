@@ -154,6 +154,18 @@ fun Composer(vm: MainViewModel) {
             ),
         )
 
+        // The day at a glance: protected prayer time, free gaps, today's items and the draft.
+        val items by vm.items.collectAsStateWithLifecycle()
+        val todayItems = remember(items, core, today) { vm.repo.occurrences(items.filter { it.enabled }, today, 1) }
+        val windows = remember(core, today) { vm.repo.protectedWindows(today) }
+        val dayAtAGlance = @Composable {
+            Text(
+                stringResource(R.string.free_time_today), color = g.secondary, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 18.dp, bottom = 2.dp),
+            )
+            DayStrip(state, windows, todayItems, preview, fmt)
+        }
+
         val d = draft
         if (d == null) {
             if (parseFailed) {
@@ -162,6 +174,7 @@ fun Composer(vm: MainViewModel) {
                     modifier = Modifier.padding(top = 8.dp).semantics { liveRegion = LiveRegionMode.Polite },
                 )
             }
+            dayAtAGlance()
             return@GlassCard
         }
 
@@ -191,20 +204,18 @@ fun Composer(vm: MainViewModel) {
                 label = prayerName(d.startKey),
                 options = Keys.ANCHORS.map { prayerName(it) to it },
                 a11y = stringResource(R.string.chip_anchor),
+                lit = true,
             ) { edit(d.withStart(it, d.startOffset)) }
-            Dot()
             ChipMenu(
                 label = d.durationMinutes?.let { durationLabel(it, fmt) } ?: stringResource(R.string.no_duration),
                 options = listOf(stringResource(R.string.no_duration) to 0) + DURATIONS.map { durationLabel(it, fmt) to it },
                 a11y = stringResource(R.string.chip_duration),
             ) { edit(d.withDuration(it)) }
-            Dot()
             ChipMenu(
                 label = recurrenceLabel(d, fmt),
                 options = recurrenceOptions(today),
                 a11y = stringResource(R.string.chip_recurrence),
             ) { edit(d.withRecurrence(it), Pinned.RECURRENCE) }
-            Dot()
             ChipMenu(
                 label = stringResource(kindRes(d.kind)),
                 options = ScheduleItem.KINDS.map { stringResource(kindRes(it)) to it },
@@ -275,6 +286,8 @@ fun Composer(vm: MainViewModel) {
                 colors = ButtonDefaults.buttonColors(containerColor = g.accent, contentColor = androidx.compose.ui.graphics.Color(0xFF060A14)),
             ) { Text(stringResource(R.string.save)) }
         }
+
+        dayAtAGlance()
     }
 }
 
@@ -326,12 +339,7 @@ private fun recurrenceOptions(today: LocalDate) = listOf(
 )
 
 @Composable
-private fun Dot() {
-    Text("·", color = LocalGlass.current.secondary)
-}
-
-@Composable
-fun <T> ChipMenu(label: String, options: List<Pair<String, T>>, a11y: String, onSelect: (T) -> Unit) {
+fun <T> ChipMenu(label: String, options: List<Pair<String, T>>, a11y: String, lit: Boolean = false, onSelect: (T) -> Unit) {
     val g = LocalGlass.current
     var open by remember { mutableStateOf(false) }
     Box {
@@ -339,7 +347,7 @@ fun <T> ChipMenu(label: String, options: List<Pair<String, T>>, a11y: String, on
             onClick = { open = true },
             modifier = Modifier
                 .heightIn(min = 40.dp)
-                .pane(g, ChipShape)
+                .then(if (lit) Modifier.lit(g, ChipShape) else Modifier.pane(g, ChipShape))
                 .semantics {
                     role = Role.DropdownList
                     contentDescription = "$a11y: $label"

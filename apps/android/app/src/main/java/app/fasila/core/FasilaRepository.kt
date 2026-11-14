@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
+import uniffi.fasila_ffi.ConflictInfo
 import uniffi.fasila_ffi.DayInfo
 import uniffi.fasila_ffi.FasilaEngine
 import uniffi.fasila_ffi.moonPhase
@@ -139,6 +140,11 @@ class FasilaRepository private constructor(context: Context) {
         core.value.engine.freeSlots(
             date.year, date.monthValue.toUByte(), date.dayOfMonth.toUByte(), durationMinutes.coerceAtLeast(1).toUInt(),
         )
+    }.getOrElse { emptyList() }
+
+    /** Time kept free around each prayer (guard + Jumu'ah), from the core. */
+    fun protectedWindows(date: LocalDate): List<ConflictInfo> = runCatching {
+        core.value.engine.protectedWindows(date.year, date.monthValue.toUByte(), date.dayOfMonth.toUByte())
     }.getOrElse { emptyList() }
 
     fun localToday(): LocalDate = Instant.now().atZone(core.value.config.zone).toLocalDate()

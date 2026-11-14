@@ -149,4 +149,7 @@
     <string name="now">الآن</string>
     <string name="numerals">الأرقام</string>
     <string name="numerals_auto">تلقائي (حسب المنطقة)</string>
+    <string name="free_time_today">وقت فارغ اليوم</string>
+    <string name="unit_min_short">د</string>
+    <string name="unit_h_short">س</string>
 </resources>

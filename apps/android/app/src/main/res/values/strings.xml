@@ -149,4 +149,7 @@
     <string name="now">Now</string>
     <string name="numerals">Numerals</string>
     <string name="numerals_auto">Automatic (by region)</string>
+    <string name="free_time_today">Free time today</string>
+    <string name="unit_min_short">min</string>
+    <string name="unit_h_short">h</string>
 </resources>

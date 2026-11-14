@@ -257,7 +257,7 @@ private fun <T> LabeledMenu(label: String, value: String, options: List<Pair<Str
     // Label above the menu: long Arabic/French values never squeeze the label.
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Text(label, color = g.secondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
-        ChipMenu(value, options, label, onSelect)
+        ChipMenu(value, options, label, onSelect = onSelect)
     }
 }
 

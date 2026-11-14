@@ -290,6 +290,27 @@ impl FasilaEngine {
         })
     }
 
+    /// Time kept free around each prayer on a day (guard, plus Jumu'ah on Fridays).
+    pub fn protected_windows(
+        &self,
+        year: i32,
+        month: u8,
+        day: u8,
+    ) -> Result<Vec<ConflictInfo>, FasilaError> {
+        let d = self.engine.day(date(year, month, day)?);
+        Ok(self
+            .engine
+            .protected_windows(&d)
+            .into_iter()
+            .map(|c| ConflictInfo {
+                prayer: c.prayer.id().into(),
+                prayer_time: c.prayer_time,
+                window_start: c.window_start,
+                window_end: c.window_end,
+            })
+            .collect())
+    }
+
     /// Qibla bearing in degrees from true north.
     pub fn qibla(&self) -> f64 {
         core::qibla(self.config.coordinates())
@@ -449,5 +470,10 @@ mod tests {
         assert_eq!(recommended_method("dz".into()), "algeria");
         let sky = e.sky(2026, 11, 13, d.dhuhr.unwrap()).unwrap();
         assert!(sky.is_daytime && sky.colors.len() == 4 && sky.time_of_day == "day");
+        // 13 Nov 2026 is a Friday: Dhuhr's window includes the Jumu'ah extra.
+        let w = e.protected_windows(2026, 11, 13).unwrap();
+        assert_eq!(w.len(), 5);
+        let dhuhr = w.iter().find(|c| c.prayer == "dhuhr").unwrap();
+        assert_eq!(dhuhr.window_end - dhuhr.prayer_time, (20 + 40) * 60);
     }
 }
