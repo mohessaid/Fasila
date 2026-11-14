@@ -16,7 +16,13 @@
     <h2>{app.t.qiblaTitle}</h2>
     {#if q}
       <svg viewBox="0 0 300 300" class="rose" role="img" aria-label={`${q.bearing.toFixed(1)}° ${app.t.fromNorth}`}>
-        <circle cx="150" cy="150" r="128" class="ring" />
+        <defs>
+          <radialGradient id="dialGlass" cx="50%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#fff" stop-opacity="0.16" />
+            <stop offset="100%" stop-color="#fff" stop-opacity="0.04" />
+          </radialGradient>
+        </defs>
+        <circle cx="150" cy="150" r="132" class="dial" />
         {#each ticks as t}
           <line x1="150" y1="26" x2="150" y2={t % 90 === 0 ? 40 : t % 30 === 0 ? 36 : 32} transform="rotate({t} 150 150)" class="tick" class:major={t % 90 === 0} />
         {/each}
@@ -44,7 +50,7 @@
   .wrap { display: grid; place-items: center; }
   .qibla { width: min(520px, 100%); display: grid; justify-items: center; gap: 8px; text-align: center; }
   .rose { width: min(360px, 80vw); }
-  .ring { fill: none; stroke: var(--hairline); stroke-width: 1; }
+  .dial { fill: url(#dialGlass); filter: drop-shadow(0 14px 30px rgba(2, 6, 23, 0.3)); }
   .tick { stroke: var(--ink-3); stroke-width: 1.2; }
   .tick.major { stroke: var(--ink); stroke-width: 2; }
   .card-lbl { fill: var(--ink-2); font-size: 14px; font-weight: 600; }

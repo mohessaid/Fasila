@@ -96,3 +96,18 @@ export function skyState(days: Day[], now: number): SkyState {
 }
 
 export const ACCENT = "#FF9B54";
+
+/** Relative luminance (WCAG) of a #rrggbb colour. */
+export function luminance(c: string): number {
+  return hex(c)
+    .map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; })
+    .reduce((acc, v, i) => acc + v * [0.2126, 0.7152, 0.0722][i], 0);
+}
+
+/** Dark tint behind glass panels, top and bottom, so text keeps WCAG AA contrast
+ *  however bright the sky is (measured: a fixed tint fails on morning skies). */
+export function glassTint(stops: Stops): { top: number; mid: number; bottom: number } {
+  const a = (l: number) => Math.min(0.84, 0.36 + Math.max(0, l - 0.02) * 0.8);
+  const top = a(luminance(stops[1])), mid = a(luminance(stops[2]));
+  return { top, mid, bottom: Math.max(top, mid, a(luminance(stops[3]))) };
+}

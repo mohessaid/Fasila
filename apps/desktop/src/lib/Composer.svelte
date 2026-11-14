@@ -165,7 +165,6 @@
       options={[{ value: "alarm", label: app.t.alarm }, { value: "task", label: app.t.task }, { value: "event", label: app.t.event }]} />
     <input class="token title" bind:value={draft.title} placeholder={app.t.titleLabel} dir="auto"
       style:width="{Math.max(6, (draft.title || app.t.titleLabel).length + 1)}ch" aria-label={app.t.titleLabel} />
-    <span class="sep">·</span>
     {#snippet amountTok()}
       {#if direction !== "at"}
         <span class="nowrap"><input class="token num" type="number" min="0" max="720" value={amount}
@@ -181,7 +180,6 @@
     {/snippet}
     {#if app.lang === "ar"}{@render dirTok()} {@render keyTok()} {@render amountTok()}
     {:else}{@render amountTok()} {@render dirTok()} {@render keyTok()}{/if}
-    <span class="sep">·</span>
     <Token label={app.t.end} value={endType} onchange={setEnd}
       options={[{ value: "none", label: app.t.endNone }, { value: "duration", label: app.t.endDuration }, { value: "until", label: app.t.endUntil }]} />
     {#if draft.end.type === "duration"}
@@ -189,26 +187,30 @@
     {:else if draft.end.type === "until"}
       {@const u = draft.end.anchor}
       {@const uDir = u.offset_minutes < 0 ? "before" : u.offset_minutes > 0 ? "after" : "at"}
-      {#if uDir !== "at"}
+      {#snippet untilDir()}
+        <Token tone={uDir === "at" ? "quiet" : "normal"} value={uDir}
+          onchange={(v) => (u.offset_minutes = v === "at" ? 0 : (v === "before" ? -1 : 1) * (Math.abs(u.offset_minutes) || 10))}
+          options={[{ value: "before", label: app.t.before }, { value: "at", label: app.t.onTime }, { value: "after", label: app.t.after }]} />
+      {/snippet}
+      {#if uDir === "at"}
+        <Token tone="strong" value={u.key} onchange={(v) => (u.key = v as TimeKey)} options={keyOptions} />
+        {@render untilDir()}
+      {:else}
         <span class="nowrap"><input class="token num" type="number" min="1" max="720" value={Math.abs(u.offset_minutes)}
           oninput={(e) => (u.offset_minutes = (u.offset_minutes < 0 ? -1 : 1) * Math.max(1, Math.abs(+e.currentTarget.value)))} /> {app.t.minutes}</span>
+        {@render untilDir()}
+        <Token tone="strong" value={u.key} onchange={(v) => (u.key = v as TimeKey)} options={keyOptions} />
       {/if}
-      <Token value={uDir}
-        onchange={(v) => (u.offset_minutes = v === "at" ? 0 : (v === "before" ? -1 : 1) * (Math.abs(u.offset_minutes) || 10))}
-        options={[{ value: "before", label: app.t.before }, { value: "at", label: app.t.atPrayer }, { value: "after", label: app.t.after }]} />
-      <Token tone="strong" value={u.key} onchange={(v) => (u.key = v as TimeKey)} options={keyOptions} />
     {/if}
-    <span class="sep">·</span>
     <Token label={app.t.repeat} value={recValue} onchange={setRec}
       options={[
         { value: "daily", label: app.t.daily },
-        { value: "today", label: `${app.t.once} · ${app.t.today}` },
-        { value: "tomorrow", label: `${app.t.once} · +1` },
+        { value: "today", label: app.t.today },
+        { value: "tomorrow", label: app.t.tomorrow },
         { value: "weekly", label: app.t.weekly },
         { value: "ramadan", label: app.t.ramadan },
         { value: "white", label: app.t.whiteDays },
       ]} />
-    <span class="sep">·</span>
     <Token tone="quiet" label={app.t.remind} value={String(draft.remind_before_minutes ?? 0)}
       onchange={(v) => (draft.remind_before_minutes = +v || null)}
       options={[{ value: "0", label: `${app.t.remind}: ${app.t.none}` },
@@ -228,12 +230,12 @@
     <div class="read">
       <strong>{app.fmt.digits(description)}</strong>
       {#if preview}
-        <span class="muted tabular">{app.t.previewToday} {app.fmt.time(preview.start)}{#if preview.end} – {app.fmt.time(preview.end)}{/if}</span>
+        <span class="muted tabular">{app.t.previewToday} {app.fmt.time(preview.start)}{#if preview.end}{" "}{app.t.rangeTo} {app.fmt.time(preview.end)}{/if}</span>
       {/if}
       {#if preview?.conflicts.length}
         <span class="clash" role="alert">
           <Icon name="warn" size={14} />
-          {app.t.conflictLong} {preview.conflicts.map((c) => app.t.keys[c.prayer]).join(" · ")}.
+          {app.t.conflictLong} {preview.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}.
           {#if suggestion}
             {#await api.describe(suggestion.anchor, app.lang) then s}
               <button class="link" onclick={applySuggestion}>{app.t.suggest} {app.fmt.digits(s)} ({app.fmt.time(suggestion.start)})</button>
@@ -266,13 +268,12 @@
   .line input::placeholder { color: var(--ink-3); }
   .hint { margin: 0 4px; font-size: 12.5px; color: var(--ink-3); }
   .hint.err { color: var(--warn); }
-  .sentence { margin: 8px 0 0; font-size: 16px; line-height: 2.4; color: var(--ink-2); }
+  .sentence { margin: 8px 0 0; font-size: 16px; line-height: 2.4; color: var(--ink-2); word-spacing: 2px; }
   .sentence .title { min-width: 6ch; max-width: 26ch; font-weight: 600; }
   .sentence .title::placeholder { color: var(--ink-3); font-weight: 500; }
   .sentence .num { width: 4.4ch; padding: 3px 6px; text-align: center; -moz-appearance: textfield; appearance: textfield; }
   .sentence .num::-webkit-inner-spin-button { display: none; }
 
-  .sep { color: var(--ink-3); margin: 0 4px; }
   .nowrap { white-space: nowrap; }
   .days { display: flex; gap: 4px; flex-wrap: wrap; }
   .days button { background: none; border: 0; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; font-size: 13.5px; transition: background 0.2s; }

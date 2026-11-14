@@ -41,7 +41,7 @@
     if (!days.length) return "";
     const a = days[0].hijri, b = days[days.length - 1].hijri;
     const n = (h: typeof a) => app.t.hijriMonths[h.month - 1];
-    return a.month === b.month ? `${n(a)} ${app.fmt.num(a.year)}` : `${n(a)} – ${n(b)} ${app.fmt.num(b.year)}`;
+    return a.month === b.month ? `${n(a)} ${app.fmt.num(a.year)}` : `${n(a)} ${app.t.rangeTo} ${n(b)} ${app.fmt.num(b.year)}`;
   });
   const sel = $derived(days.find((d) => d.date === selected));
   const keys: TimeKey[] = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"];

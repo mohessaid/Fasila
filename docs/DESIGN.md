@@ -63,9 +63,25 @@ no outlines, no side stripes, no underlines, no indicator dots, no hairline divi
 
 | Level | Use | Recipe (web; native equivalents in brackets) |
 |---|---|---|
-| **Panel** | the frosted sheet a region sits on | blur 26 + white 7.5 %→3 % over a 34 % `#060A14` tint; specular top edge `inset 0 1px 0 white 14 %`; 0.5 px inner rim white 7 %; soft drop shadow [`.ultraThinMaterial` dark] |
+| **Panel** | the frosted sheet a region sits on | blur 26 + white 7.5 %→3 % over an **adaptive** `#060A14` tint (see below); specular top edge `inset 0 1px 0 white 14 %`; 0.5 px inner rim white 7 %; soft drop shadow [`.ultraThinMaterial` dark] |
 | **Pane** | secondary state (current prayer, today in the calendar), hover | white 6 %, specular edge white 8 % |
 | **Lit pane** | primary state (next prayer, active tab, selected day, focused field, chosen option) | blur 18 + brightness 1.18; white 20 %→9 % with a warm accent glow from the top (`radial #FF9B54 22 %`); specular edge white 38 %; accent-tinted shadow |
+
+**Adaptive tint (legibility).** A fixed tint fails WCAG AA on bright skies
+(measured 1.6-3.1:1 on the morning sky). The panel tint opacity is derived from the
+sky's brightest stop: `a = min(0.84, 0.36 + max(0, L - 0.02) * 0.8)`, where L is
+relative luminance; at night it stays near 0.36. One value per sky, applied to every
+panel (viewport-pinned gradients don't combine with backdrop blur in WebKitGTK).
+Small text that sits directly on the sky (the next prayer's time) goes on a small
+frosted pill with the same adaptive tint. The countdown has a soft veil of darker
+sky behind it. Measured result: every text level is ≥ 4.5:1 on panels at sunrise,
+noon, Asr and night.
+
+**Solid panes.** A setting (and `prefers-reduced-transparency`) replaces the tint with
+solid `#0E1426` and lit panes with solid `#2A3350`, no blur.
+
+**Affordance.** Hover frosting and press feedback (`scale(0.985)`) apply only to
+real controls, never to read-only rows.
 
 - Rows inside a panel are transparent until hovered (they frost on hover).
   They are separated by space, not by lines.
@@ -103,8 +119,11 @@ A 268-unit-high scene above the countdown:
 - Latin: Inter (400/500/600/700).
 - Arabic: Tajawal (400/500/700/800).
 - Countdown: tabular numerals, 44–64 pt, weight 300.
-- Section labels: 12 pt semibold, uppercase, letter-spacing 2. Arabic labels have
-  no case and no tracking.
+- Section labels: 13 pt semibold, sentence case, secondary ink. The one tracked
+  uppercase line is the night lunar-day line in the hero (from Salah Rhythm).
+- Copy: no em or en dashes anywhere (UI, notifications, tray). Use a period, comma
+  or colon. French puts a no-break space before `:`; Arabic uses «،» and «؛».
+  At most one middle dot per line.
 
 ## Scheduling UX
 
@@ -122,11 +141,13 @@ offers the nearest free slot as a link ("Move to 20 min after Asr (15:39)").
 **Day strip:** one band from just before Fajr to midnight, drawn in this order:
 1. **Prayer labels** across the top: name and time.
 2. **Gap lengths** between the protected windows (the *fasila*).
-3. **The track**, with the protected windows drawn on it as soft bars.
-4. **Today's items** below the track, in accent, or amber if one clashes with a prayer.
-5. **The draft** being composed, as a dashed bar.
+3. **The channel**: a frosted glass groove; protected prayer windows are brighter
+   frosted segments inside it.
+4. **Today's items** as small lit accent capsules in the channel (amber if one
+   clashes with a prayer).
+5. **The draft** being composed, as a lit pane capsule that breathes gently.
 
-A vertical line marks "now".
+A soft beam of light marks "now". Gap lengths sit below the channel.
 
 ## Notifications
 

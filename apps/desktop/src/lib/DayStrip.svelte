@@ -55,20 +55,44 @@
 </figure>
 
 <style>
-  .strip { position: relative; height: 104px; margin: 8px 0 0; }
-  .track { position: absolute; inset-inline: 0; top: 58px; height: 2px; border-radius: 2px; background: var(--hairline); }
-  .win { position: absolute; top: 54px; height: 10px; border-radius: 5px; background: rgba(248, 250, 252, 0.22); }
+  /* The day as a frosted glass channel. Prayer windows are frosted segments in it,
+     items and the draft are lit capsules, and "now" is a soft beam of light. */
+  .strip { position: relative; height: 112px; margin: 8px 0 0; }
+  .track {
+    position: absolute; inset-inline: 0; top: 50px; height: 40px; border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -10px 20px rgba(6, 10, 20, 0.18);
+  }
+  .win {
+    position: absolute; top: 54px; height: 32px; border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
   .pname {
-    position: absolute; top: 6px; translate: -50% 0; display: grid; justify-items: center; gap: 1px;
+    position: absolute; top: 4px; translate: -50% 0; display: grid; justify-items: center; gap: 1px;
     font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap;
   }
   :global([dir="rtl"]) .pname, :global([dir="rtl"]) .gap { translate: 50% 0; }
-  .ptime { font-weight: 400; color: var(--ink-3); font-size: 11px; }
-  .gap { position: absolute; top: 40px; translate: -50% 0; font-size: 10.5px; color: var(--ink-3); white-space: nowrap; }
-  .item { position: absolute; top: 74px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--accent) 75%, transparent); }
-  .draft { position: absolute; top: 86px; height: 8px; border-radius: 4px; border: 1.5px dashed var(--accent); }
-  .item.clash { background: var(--warn); }
-  .draft.clash { border-color: var(--warn); }
-  .now { position: absolute; top: 52px; bottom: 4px; width: 1.5px; background: var(--ink); opacity: 0.7; }
-  .now::before { content: ""; position: absolute; top: -3px; left: -2.25px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+  .ptime { font-weight: 400; color: var(--ink-2); font-size: 11px; }
+  .gap { position: absolute; top: 96px; translate: -50% 0; font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+  .item {
+    position: absolute; top: 62px; height: 16px; min-width: 8px; border-radius: 8px;
+    background: linear-gradient(180deg, #ffbe8f, var(--accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 4px 12px rgba(255, 155, 84, 0.35);
+  }
+  .item.clash { background: linear-gradient(180deg, #ffd29b, var(--warn)); }
+  .draft {
+    position: absolute; top: 58px; height: 24px; min-width: 10px; border-radius: 10px;
+    background: radial-gradient(120% 160% at 50% -20%, rgba(255, 155, 84, 0.45), transparent 70%), rgba(255, 255, 255, 0.24);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 22px rgba(255, 155, 84, 0.3);
+    animation: breathe 2.4s ease-in-out infinite alternate;
+  }
+  .draft.clash { background: radial-gradient(120% 160% at 50% -20%, rgba(255, 178, 107, 0.6), transparent 70%), rgba(255, 255, 255, 0.24); }
+  @keyframes breathe { from { opacity: 0.75; } to { opacity: 1; } }
+  :global(:root[data-motion="reduce"]) .draft { animation: none; }
+  .now {
+    position: absolute; top: 46px; height: 48px; width: 2px; translate: -1px 0; border-radius: 2px;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.55);
+  }
 </style>

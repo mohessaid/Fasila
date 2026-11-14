@@ -140,7 +140,7 @@
     <div class="text">
       <div class="next">{app.t.isNext.replace("{p}", app.keyName(nx.key, nx.day))}</div>
       <div class="count tabular">{app.fmt.countdown(nx.at - app.now)}</div>
-      <div class="at muted tabular">{app.t.at} {app.fmt.time(nx.at)}</div>
+      <div class="at tabular">{app.t.at} {app.fmt.time(nx.at)}</div>
       {#if !sky.isDaytime}
         <div class="phase">
           {whiteDays ? app.t.whiteDaysTitle : `${app.t.lunarDay} ${app.fmt.num(hijriDay)}`}
@@ -158,7 +158,7 @@
   .track.faint { stroke-opacity: 0.08; }
   .mark { fill: #f8fafc; fill-opacity: 0.55; }
   .mark.next { fill: var(--accent); fill-opacity: 1; }
-  .lbl { font-size: 12px; fill: var(--ink-2); font-weight: 500; }
+  .lbl { font-size: 12px; fill: var(--ink); font-weight: 500; }
   .body { transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .body.hidden { opacity: 0; }
   .moon { transform-box: fill-box; transform-origin: center; animation: shimmer 3.5s ease-in-out infinite alternate; }
@@ -167,11 +167,25 @@
   @keyframes glow { from { opacity: 0.4; transform: scale(1.06); } to { opacity: 0.8; transform: scale(1.12); } }
   @keyframes shimmer { from { opacity: 0.78; } to { opacity: 1; } }
   :global(:root[data-motion="reduce"]) .moon, :global(:root[data-motion="reduce"]) .sun-glow { animation: none; }
-  .text { display: grid; justify-items: center; gap: 2px; margin-top: -6px; text-align: center; }
+  /* Soft shadow keeps the countdown legible over the brightest skies (large text, 3:1). */
+  .text {
+    position: relative; isolation: isolate; display: grid; justify-items: center; gap: 2px; margin-top: -6px; padding: 6px 40px 10px; text-align: center;
+    text-shadow: 0 1px 14px rgba(6, 10, 20, 0.4);
+  }
+  /* A soft veil of darker sky behind the countdown keeps it legible on bright skies. */
+  .text::before {
+    content: ""; position: absolute; inset: -40px -120px -70px; z-index: -1;
+    background: radial-gradient(closest-side, rgb(6 10 20 / calc(var(--tint-mid) * 0.5)), rgb(6 10 20 / calc(var(--tint-mid) * 0.22)) 55%, transparent);
+    filter: blur(24px);
+  }
   .next { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
   :global(:root[lang="ar"]) .next { letter-spacing: 0; }
   .count { font-size: clamp(44px, 6vw, 64px); font-weight: 300; line-height: 1.05; letter-spacing: -0.02em; }
-  .at { font-size: 15px; }
+  .at {
+    margin-top: 6px; padding: 4px 14px; border-radius: 999px; font-size: 15px; font-weight: 500; text-shadow: none;
+    background: rgb(6 10 20 / calc(0.18 + var(--tint-mid) * 0.5)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
   .phase { margin-top: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); }
   :global(:root[lang="ar"]) .phase { letter-spacing: 0; font-size: 14px; }
 </style>

@@ -62,7 +62,7 @@ export interface Config { location: Location; params: Params; hijri: HijriProfil
 export interface Prefs {
   lang: "auto" | "en" | "ar" | "fr"; numerals: "auto" | "latn" | "arab"; clock: "24h" | "12h";
   adhan: boolean[]; pre_reminder_minutes: number; sunrise_warning_minutes: number;
-  auto_hijri_feed: boolean; reduce_motion: boolean;
+  auto_hijri_feed: boolean; reduce_motion: boolean; solid_panes: boolean;
 }
 export interface City { name: string; name_ar: string; country: string; latitude: number; longitude: number; timezone: string }
 export interface MethodInfo { id: string; name: string }

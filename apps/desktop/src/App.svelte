@@ -20,7 +20,11 @@
     r.lang = app.lang;
     r.dir = app.dir;
     r.dataset.motion = app.prefs.reduce_motion ? "reduce" : "full";
+    r.dataset.transparency = app.prefs.solid_panes ? "reduce" : "full";
     app.skyColors.forEach((c, i) => r.style.setProperty(`--sky-${i}`, c));
+    r.style.setProperty("--tint-top", String(app.tint.top));
+    r.style.setProperty("--tint-mid", String(app.tint.mid));
+    r.style.setProperty("--tint-bottom", String(app.tint.bottom));
     document.title = app.t.appName;
   });
 
@@ -90,6 +94,21 @@
   {/if}
 {/if}
 
+{#if !app.ready}
+  <!-- Skeleton shaped like Today, shown while the core computes the first days. -->
+  <div class="skeleton" aria-busy="true" aria-label="Loading">
+    <div class="sk-stage">
+      <span class="sk sk-title"></span>
+      <span class="sk sk-sub"></span>
+      <span class="sk sk-arc"></span>
+      <span class="sk sk-count"></span>
+    </div>
+    <div class="glass sk-panel">
+      {#each Array(6) as _}<span class="sk sk-row"></span>{/each}
+    </div>
+  </div>
+{/if}
+
 {#if app.toast}
   <div class="toast glass" role="status">{app.toast}</div>
 {/if}
@@ -116,6 +135,17 @@
   .page { animation: rise 0.35s ease both; }
   :global(:root[data-motion="reduce"]) .page { animation: none; }
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .skeleton { height: 100%; display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; padding: 76px 24px 24px; max-width: 1180px; margin: 0 auto; }
+  .sk-stage { display: grid; justify-items: center; align-content: start; gap: 14px; padding-top: 12px; }
+  .sk-panel { padding: 30px 28px; display: grid; gap: 14px; align-content: start; }
+  .sk { display: block; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.12), rgba(255,255,255,0.05)); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+  .sk-title { width: 46%; height: 26px; }
+  .sk-sub { width: 32%; height: 14px; }
+  .sk-arc { width: 90%; height: 200px; border-radius: 200px 200px 24px 24px; margin-top: 18px; }
+  .sk-count { width: 40%; height: 56px; }
+  .sk-row { height: 22px; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  :global(:root[data-motion="reduce"]) .sk { animation: none; }
   .toast { position: fixed; background: var(--veil); inset-block-end: 22px; inset-inline-start: 50%; translate: -50% 0; padding: 10px 20px; border-radius: 999px; font-size: 14px; z-index: 10; }
   :global([dir="rtl"]) .toast { translate: 50% 0; }
 

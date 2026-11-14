@@ -31,7 +31,7 @@ export function makeFormat(o: FormatOpts) {
   return {
     /** Localize ASCII digits inside a string produced by the Rust core. */
     digits: (s: string) => (arabDigits ? s.replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]) : s),
-    time: (ts: number | null | undefined) => (ts == null ? "—" : time.format(new Date(ts * 1000))),
+    time: (ts: number | null | undefined) => (ts == null ? "--:--" : time.format(new Date(ts * 1000))),
     num: (n: number) => num.format(n),
     /** Countdown "1:05:09" or "05:09". */
     countdown: (secs: number) => {

@@ -1,14 +1,14 @@
 import { api, newId } from "./api";
 import { dict, resolveLang, type Lang } from "./i18n";
 import { makeFormat } from "./format";
-import { skyColors, skyState, starOpacity } from "./sky";
+import { glassTint, skyColors, skyState, starOpacity } from "./sky";
 import { invoke } from "@tauri-apps/api/core";
 import type { City, Config, Day, Item, MethodInfo, Occurrence, Prefs, TimeKey } from "./types";
 import { PRAYERS } from "./types";
 
 const DEFAULT_PREFS: Prefs = {
   lang: "auto", numerals: "auto", clock: "24h", adhan: [true, true, true, true, true],
-  pre_reminder_minutes: 10, sunrise_warning_minutes: 15, auto_hijri_feed: true, reduce_motion: false,
+  pre_reminder_minutes: 10, sunrise_warning_minutes: 15, auto_hijri_feed: true, reduce_motion: false, solid_panes: false,
 };
 
 class AppState {
@@ -39,6 +39,7 @@ class AppState {
   skyState = $derived(skyState(this.days, this.now));
   skyColors = $derived(skyColors(this.skyState.progress, this.skyState.timeOfDay));
   stars = $derived(starOpacity(this.skyState.progress));
+  tint = $derived(glassTint(this.skyColors));
   /** Moon phase from the Rust core, refreshed every 10 minutes. */
   moon = $state<{ phase: number; illumination: number; waxing: boolean } | null>(null);
 
@@ -68,8 +69,12 @@ class AppState {
   });
 
   private timer: ReturnType<typeof setInterval> | undefined;
+  /** Debug-only clock shift from the backend (FASILA_NOW); 0 in release builds. */
+  private offset = 0;
 
   async init() {
+    this.offset = await invoke<number>("clock_offset_secs").catch(() => 0);
+    this.now = Math.floor(Date.now() / 1000) + this.offset;
     const l = await api.load();
     this.config = l.config;
     this.items = l.items;
@@ -86,7 +91,7 @@ class AppState {
   }
 
   private async tick() {
-    this.now = Math.floor(Date.now() / 1000);
+    this.now = Math.floor(Date.now() / 1000) + this.offset;
     if (this.now % 600 === 0 || !this.moon) {
       invoke<{ phase: number; illumination: number; waxing: boolean }>("moon_phase", { at: this.now })
         .then((m) => (this.moon = m))

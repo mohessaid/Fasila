@@ -1,4 +1,4 @@
-//! Fasila desktop (Windows / Linux) — Tauri shell around fasila-core.
+//! Fasila desktop (Windows / Linux): Tauri shell around fasila-core.
 //!
 //! * Commands expose the core engine to the web UI.
 //! * A background thread fires adhan and schedule notifications and keeps the
@@ -41,6 +41,8 @@ pub struct Prefs {
     pub sunrise_warning_minutes: u32,
     pub auto_hijri_feed: bool,
     pub reduce_motion: bool,
+    /// Solid panes instead of translucent glass (accessibility).
+    pub solid_panes: bool,
 }
 
 impl Default for Prefs {
@@ -54,6 +56,7 @@ impl Default for Prefs {
             sunrise_warning_minutes: 15,
             auto_hijri_feed: true,
             reduce_motion: false,
+            solid_panes: false,
         }
     }
 }
@@ -85,13 +88,38 @@ impl AppState {
 
 type Shared<'a> = State<'a, Arc<AppState>>;
 
+/// Seconds added to the real clock. Debug builds only: `FASILA_NOW=<unix seconds>` starts
+/// the app at that instant (for screenshots of every sky state). Always 0 in release.
+fn clock_offset() -> i64 {
+    static OFFSET: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
+    *OFFSET.get_or_init(|| {
+        if !cfg!(debug_assertions) {
+            return 0;
+        }
+        std::env::var("FASILA_NOW")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+            .map(|t| t - Utc::now().timestamp())
+            .unwrap_or(0)
+    })
+}
+
+fn now_utc() -> chrono::DateTime<Utc> {
+    Utc::now() + chrono::Duration::seconds(clock_offset())
+}
+
+#[tauri::command]
+fn clock_offset_secs() -> i64 {
+    clock_offset()
+}
+
 fn tz_of(cfg: &Config) -> Option<chrono_tz::Tz> {
     cfg.location.timezone.parse().ok()
 }
 
 /// The local civil date at the configured location.
 fn local_today(cfg: &Config) -> Date {
-    let now = Utc::now();
+    let now = now_utc();
     let offset_secs = match tz_of(cfg) {
         Some(tz) => {
             use chrono::Offset;
@@ -358,9 +386,9 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
                 at,
                 title: t(
                     &lang,
-                    &format!("{name} — it's time to pray"),
+                    &format!("It's time for {name}"),
                     &format!("حان الآن موعد صلاة {name}"),
-                    &format!("{name} — c'est l'heure de la prière"),
+                    &format!("C'est l'heure de {name}"),
                 ),
                 body: local_hm(cfg, at),
             });
@@ -404,7 +432,7 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
     }
     for o in e.occurrences_on(&store.items, &day) {
         let when = match o.end {
-            Some(end) => format!("{}–{}", local_hm(cfg, o.start), local_hm(cfg, end)),
+            Some(end) => format!("{}-{}", local_hm(cfg, o.start), local_hm(cfg, end)),
             None => local_hm(cfg, o.start),
         };
         let icon = match o.kind {
@@ -438,7 +466,7 @@ fn alerts_for(store: &Store, cfg: &Config, date: Date) -> Vec<Alert> {
 fn next_prayer_label(store: &Store, cfg: &Config) -> Option<String> {
     let lang = lang_of(&store.prefs);
     let e = cfg.engine();
-    let now = Utc::now().timestamp();
+    let now = now_utc().timestamp();
     let today = local_today(cfg);
     let (k, at) = (0..2).find_map(|i| e.day(today.add_days(i)).times.next_prayer(now))?;
     let mins = (at - now + 59) / 60;
@@ -449,7 +477,7 @@ fn next_prayer_label(store: &Store, cfg: &Config) -> Option<String> {
         format!("{m}m")
     };
     Some(format!(
-        "Fasila — {} {} ({})",
+        "Fasila: {} {} ({})",
         schedule::key_name(k, &lang),
         local_hm(cfg, at),
         left
@@ -458,10 +486,10 @@ fn next_prayer_label(store: &Store, cfg: &Config) -> Option<String> {
 
 fn spawn_notifier(app: AppHandle, state: Arc<AppState>) {
     std::thread::spawn(move || {
-        let mut last = Utc::now().timestamp();
+        let mut last = now_utc().timestamp();
         loop {
             std::thread::sleep(Duration::from_secs(10));
-            let now = Utc::now().timestamp();
+            let now = now_utc().timestamp();
             let (alerts, label) = {
                 let s = state.store.lock().unwrap();
                 let Some(cfg) = s.config.clone() else {
@@ -582,6 +610,7 @@ pub fn run() {
             qibla,
             refresh_hijri,
             moon_phase,
+            clock_offset_secs,
             test_notification
         ])
         .run(tauri::generate_context!())

@@ -1,5 +1,8 @@
 /* Fasila — glass over a living sky. See docs/DESIGN.md. */
 
+@property --tint-top { syntax: "<number>"; inherits: true; initial-value: 0.34; }
+@property --tint-mid { syntax: "<number>"; inherits: true; initial-value: 0.34; }
+@property --tint-bottom { syntax: "<number>"; inherits: true; initial-value: 0.34; }
 @property --sky-0 { syntax: "<color>"; inherits: true; initial-value: #010208; }
 @property --sky-1 { syntax: "<color>"; inherits: true; initial-value: #020510; }
 @property --sky-2 { syntax: "<color>"; inherits: true; initial-value: #040a1b; }
@@ -9,8 +12,8 @@
   /* Palette: always-dark night ink with a warm lamp-light accent. */
   --bg: #060a14;
   --ink: #f8fafc;
-  --ink-2: rgba(226, 232, 240, 0.78);
-  --ink-3: rgba(203, 213, 225, 0.55);
+  --ink-2: rgba(226, 232, 240, 0.82);
+  --ink-3: rgba(203, 213, 225, 0.8);
   --accent: #ff9b54;
   --accent-ink: #060a14;
   --ok: #7be0b5;
@@ -23,9 +26,13 @@
   --glass-hover: rgba(255, 255, 255, 0.12);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-hi: rgba(255, 255, 255, 0.16);
-  --glass-tint: rgba(6, 10, 20, 0.34);
+  --tint-top: 0.34;
+  --tint-mid: 0.34;
+  --tint-bottom: 0.34;
+  /* One tint per sky, set by its brightest stop, so every panel keeps AA contrast.
+     (Viewport-pinned gradients don't work with backdrop-filter in WebKitGTK.) */
+  --glass-tint: linear-gradient(180deg, rgb(6 10 20 / calc(var(--tint-bottom) * 0.9)), rgb(6 10 20 / var(--tint-bottom)));
   --veil: linear-gradient(180deg, rgba(6, 10, 20, 0.30), rgba(6, 10, 20, 0.42));
-  --hairline: rgba(255, 255, 255, 0.09);
   --shadow: 0 10px 24px rgba(2, 6, 23, 0.18);
   --radius: 24px;
   --radius-sm: 16px;
@@ -35,7 +42,7 @@
   font-family: var(--font);
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
-  transition: --sky-0 2.5s ease, --sky-1 2.5s ease, --sky-2 2.5s ease, --sky-3 2.5s ease;
+  transition: --tint-top 2.5s ease, --tint-mid 2.5s ease, --tint-bottom 2.5s ease, --sky-0 2.5s ease, --sky-1 2.5s ease, --sky-2 2.5s ease, --sky-3 2.5s ease;
 }
 
 :root[lang="ar"] { --font: "Tajawal", "Inter Variable", system-ui, sans-serif; }
@@ -44,9 +51,13 @@
 @media (prefers-reduced-motion: reduce) { :root { transition: none; } }
 
 /* Reduce transparency → solid panes. */
+/* Reduce transparency: solid panes (also forced with data-transparency="reduce"). */
 @media (prefers-reduced-transparency: reduce) {
-  :root { --glass: rgba(14, 20, 38, 0.96); --glass-strong: rgba(24, 32, 56, 0.98); --glass-tint: transparent; --blur: 0px; }
+  :root { --glass-tint: linear-gradient(#0e1426, #0e1426); --blur: 0px; }
+  .lit { background-color: #2a3350; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
+:root[data-transparency="reduce"] { --glass-tint: linear-gradient(#0e1426, #0e1426); --blur: 0px; }
+:root[data-transparency="reduce"] .lit { background-color: #2a3350; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -100,15 +111,14 @@ button { cursor: pointer; }
 }
 /* Interactive frosting: transparent at rest, frosts on hover. */
 .frost { border-radius: var(--radius-sm); transition: background 0.2s ease, box-shadow 0.2s ease; }
-.frost:hover { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+button.frost:hover, li.frost:has(button):hover { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
 
 .card { padding: 24px; }
 /* Section labels: small, tracked, quiet. */
 .card h2, .label {
-  margin: 0 0 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--ink-3);
+  margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink-2);
 }
-:root[lang="ar"] .label { letter-spacing: 0; text-transform: none; font-size: 13px; }
+:root[lang="ar"] .label, :root[lang="ar"] .card h2 { letter-spacing: 0; font-size: 14px; }
 /* Editable value inside a sentence: a small frosted chip that lights when engaged. */
 .token {
   color: var(--ink); font-weight: 600; font-size: inherit; padding: 3px 11px; border: 0; border-radius: 999px;
@@ -118,24 +128,11 @@ button { cursor: pointer; }
 .token:hover { background: rgba(255, 255, 255, 0.14); }
 .token:focus { outline: none; background: rgba(255, 255, 255, 0.18); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 18px rgba(255, 155, 84, 0.18); }
 select.token option { color: #111; background: #fff; }
-:root[lang="ar"] .card h2 { letter-spacing: 0; text-transform: none; font-size: 13px; }
 
 .muted { color: var(--ink-2); }
 .faint { color: var(--ink-3); }
 .tabular { font-variant-numeric: tabular-nums; }
 
-.chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 999px;
-  background: var(--glass-strong); border: 0;
-  font-size: 14px; white-space: nowrap;
-}
-.chip select, .chip input {
-  background: transparent; border: 0; outline: none; padding: 0; appearance: none; -webkit-appearance: none;
-}
-.chip input[type="number"] { width: 3.2ch; text-align: center; -moz-appearance: textfield; }
-.chip input[type="number"]::-webkit-inner-spin-button { display: none; }
-.chip select option { color: #111; background: #fff; }
 
 .btn {
   border: 0; background: var(--glass-strong);
@@ -145,6 +142,9 @@ select.token option { color: #111; background: #fff; }
 }
 .btn:hover { background: var(--glass-hover); }
 .btn:active { transform: scale(0.97); }
+/* Tactile press on every interactive glass surface. */
+button.frost:active, button.lit:active, .token:active, button.pane:active { transform: scale(0.985); }
+.frost, .lit, .token { transition: transform 0.15s ease, background 0.25s ease, box-shadow 0.25s ease; }
 .btn.primary {
   color: var(--accent-ink);
   background: linear-gradient(180deg, #ffb27a, var(--accent));
@@ -168,12 +168,7 @@ select.token option { color: #111; background: #fff; }
 .input::placeholder { color: var(--ink-3); }
 select.input option { color: #111; background: #fff; }
 
-.warn { color: var(--warn); background: var(--warn-bg); border-radius: 14px; padding: 10px 14px; font-size: 14px; }
 
-.badge {
-  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.02em;
-  background: var(--warn-bg); color: var(--warn);
-}
 
 /* Directional icons flip in RTL. */
 [dir="rtl"] .flip-rtl { transform: scaleX(-1); }

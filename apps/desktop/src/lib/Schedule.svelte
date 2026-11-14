@@ -17,7 +17,7 @@
       items.map(async (i) => {
         let d = await api.describe(i.start, lang);
         if (i.end.type === "until") d += ` → ${await api.describe(i.end.anchor, lang)}`;
-        else if (i.end.type === "duration") d += ` · ${app.fmt.duration(i.end.minutes, app.t.hours, app.t.minutes)}`;
+        else if (i.end.type === "duration") d += `, ${app.fmt.duration(i.end.minutes, app.t.hours, app.t.minutes)}`;
         return [i.id, d] as const;
       }),
     ).then((pairs) => (descs = Object.fromEntries(pairs)));
@@ -27,8 +27,8 @@
     const r = i.recurrence;
     switch (r.type) {
       case "daily": return app.t.daily;
-      case "once": return `${app.t.once} · ${app.fmt.dayMonth(r.date)}`;
-      case "weekly": return app.t.weekdaysShort.filter((_, d) => (r.days >> d) & 1).join(" · ");
+      case "once": return app.fmt.dayMonth(r.date);
+      case "weekly": return app.t.weekdaysShort.filter((_, d) => (r.days >> d) & 1).join(", ");
       case "hijri_month": return app.t.ramadan;
       case "hijri_monthly": return app.t.whiteDays;
       case "hijri_yearly": return `${app.fmt.num(r.day)} ${app.t.hijriMonths[r.month - 1]}`;
@@ -59,10 +59,11 @@
         {#each ordered as item (item.id)}
           {@const occ = occById[item.id]}
           <li class="frost" class:off={!item.enabled} class:lit={editing?.id === item.id}>
-            <span class="when tabular">{occ ? app.fmt.time(occ.start) : "—"}</span>
+            <span class="when tabular">{occ ? app.fmt.time(occ.start) : ""}</span>
             <button class="body" onclick={() => (editing = item)} title={app.t.edit}>
               <span class="title"><Icon name={item.kind} size={14} /> {item.title}</span>
-              <span class="meta">{app.fmt.digits(descs[item.id] ?? "")} · {recLabel(item)}</span>
+              <span class="meta">{app.fmt.digits(descs[item.id] ?? "")}</span>
+              <span class="meta">{recLabel(item)}</span>
               {#if occ?.conflicts.length}
                 <span class="clash">{app.t.conflict} {occ.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}</span>
               {/if}

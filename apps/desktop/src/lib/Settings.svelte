@@ -47,7 +47,7 @@
   async function refreshFeed() {
     try {
       const r = await api.refreshHijri();
-      feedMsg = `${r.online ? app.t.feedOnline : app.t.feedOffline} · ${app.fmt.num(r.changed)} ${app.t.changes}${r.source ? " · " + r.source : ""}`;
+      feedMsg = `${r.online ? app.t.feedOnline : app.t.feedOffline}, ${app.fmt.num(r.changed)} ${app.t.changes}${r.source ? ". " + r.source : ""}`;
       cfg = structuredClone($state.snapshot((await api.load()).config!)) as Config;
       await app.refresh();
     } catch (e) {
@@ -82,8 +82,8 @@
 
   <section class="glass card">
     <h2>{app.t.method}</h2>
-    <label class="field">{app.t.method}
-      <select class="input" value={cfg.params.method} onchange={(e) => setMethod(e.currentTarget.value)}>
+    <label class="field">
+      <select class="input" aria-label={app.t.method} value={cfg.params.method} onchange={(e) => setMethod(e.currentTarget.value)}>
         {#each app.methods as m}<option value={m.id}>{m.name}</option>{/each}
       </select>
     </label>
@@ -157,7 +157,7 @@
     <h2><Icon name="bell" size={14} /> {app.t.notifications}</h2>
     <div class="toggles">
       {#each prayerKeys as k, i}
-        <label class="tog"><input type="checkbox" bind:checked={prefs.adhan[i]} onchange={persistPrefs} /> {app.t.adhan} · {app.t.keys[k]}</label>
+        <label class="tog"><input type="checkbox" bind:checked={prefs.adhan[i]} onchange={persistPrefs} /> {app.t.keys[k]}</label>
       {/each}
     </div>
     <div class="two">
@@ -196,6 +196,7 @@
       </label>
     </div>
     <label class="tog"><input type="checkbox" bind:checked={prefs.reduce_motion} onchange={persistPrefs} /> {app.t.reduceMotion}</label>
+    <label class="tog"><input type="checkbox" bind:checked={prefs.solid_panes} onchange={persistPrefs} /> {app.t.solidPanes}</label>
   </section>
 </div>
 

@@ -24,7 +24,7 @@
         </h1>
         <p>{app.fmt.longDate(day.date)}</p>
         {#if day.occasions.length}
-          <p class="occ">{day.occasions.map((o) => app.t.occ[o] ?? o).join(" · ")}</p>
+          <p class="occ">{day.occasions.map((o) => app.t.occ[o] ?? o).join(", ")}</p>
         {/if}
       </header>
       <CelestialHero {day} />
@@ -71,7 +71,7 @@
               <span class="when tabular">{app.fmt.time(o.start)}</span>
               <span class="what">
                 {o.title || app.t[o.kind]}
-                {#if o.end}<span class="until tabular"> – {app.fmt.time(o.end)}</span>{/if}
+                {#if o.end}<span class="until tabular"> {app.t.rangeTo} {app.fmt.time(o.end)}</span>{/if}
                 {#if o.conflicts.length}
                   <span class="clash">{app.t.conflict} {o.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}</span>
                 {/if}
