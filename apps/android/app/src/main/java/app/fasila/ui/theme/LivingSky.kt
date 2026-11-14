@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import app.fasila.core.Sky
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
@@ -46,7 +47,13 @@ fun LivingSky(sky: Sky, modifier: Modifier = Modifier) {
     }
     val clock = remember { mutableLongStateOf(0L) }
     if (!reduceMotion && starAlpha > 0.01f) {
-        LaunchedEffect(Unit) { while (true) withInfiniteAnimationFrameMillis { clock.longValue = it } }
+        // 2-6 s twinkles look the same at 10 updates/s; redrawing every frame costs battery all night.
+        LaunchedEffect(Unit) {
+            while (true) {
+                withInfiniteAnimationFrameMillis { clock.longValue = it }
+                delay(100)
+            }
+        }
     }
 
     Canvas(modifier.fillMaxSize()) {
