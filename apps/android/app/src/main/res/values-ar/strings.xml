@@ -62,13 +62,13 @@
     <string name="rec_fridays">كل جمعة</string>
     <string name="rec_weekdays_mon_thu">الاثنين والخميس</string>
     <string name="rec_weekly">كل %1$s</string>
-    <string name="rec_ayyam_al_bid">الأيام البيض (13–15)</string>
+    <string name="rec_ayyam_al_bid">الأيام البيض (13-15)</string>
     <string name="rec_ramadan">كل يوم من رمضان</string>
     <string name="rec_hijri_monthly">أيام %1$s من كل شهر هجري</string>
     <string name="rec_hijri_yearly">كل عام في %1$s %2$s</string>
     <string name="rec_hijri_month">كل يوم من %1$s</string>
     <string name="preview_today">اليوم: %1$s</string>
-    <string name="conflict_fmt">يتداخل مع %1$s (وقت محفوظ %2$s – %3$s)</string>
+    <string name="conflict_fmt">يتداخل مع %1$s (وقت محفوظ من %2$s إلى %3$s)</string>
     <string name="conflict_short">يتداخل مع صلاة</string>
     <string name="move_to_fmt">انقله إلى %1$s</string>
     <string name="clear">مسح</string>
@@ -140,4 +140,11 @@
     <string name="notif_pre_title">%1$s بعد %2$s د</string>
     <string name="notif_starts_in">يبدأ بعد %1$s د · %2$s</string>
     <string name="action_dismiss">إيقاف</string>
+    <string name="is_next">الصلاة القادمة: %1$s</string>
+    <string name="at_time">عند %1$s</string>
+    <string name="lunar_day_line">اليوم القمري %1$s · %2$s%% مضاء</string>
+    <string name="white_days_title">الأيام البيض</string>
+    <string name="range_to">%1$s إلى %2$s</string>
+    <string name="in_time">بعد %1$s</string>
+    <string name="now">الآن</string>
 </resources>

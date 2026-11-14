@@ -173,8 +173,13 @@ fun QiblaScreen(vm: MainViewModel, padding: PaddingValues) {
                 val r = size.minDimension / 2f - 16.dp.toPx()
                 val dialRotation = if (hasHeading) -heading else 0f
                 rotate(dialRotation) {
-                    drawCircle(g.fill, radius = r)
-                    drawCircle(g.border, radius = r, style = Stroke(1.dp.toPx()))
+                    drawCircle(
+                        androidx.compose.ui.graphics.Brush.radialGradient(
+                            listOf(androidx.compose.ui.graphics.Color.White.copy(alpha = 0.16f), androidx.compose.ui.graphics.Color.White.copy(alpha = 0.04f)),
+                            center = center.copy(y = center.y - r * 0.4f), radius = r * 1.5f,
+                        ),
+                        radius = r,
+                    )
                     for (i in 0 until 72) {
                         val a = Math.toRadians(i * 5.0 - 90)
                         val long = i % 18 == 0

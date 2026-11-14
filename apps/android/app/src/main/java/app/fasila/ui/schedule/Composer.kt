@@ -55,6 +55,8 @@ import app.fasila.ui.lang
 import app.fasila.ui.prayerName
 import app.fasila.ui.rememberFormatter
 import app.fasila.ui.theme.ChipShape
+import app.fasila.ui.theme.lit
+import app.fasila.ui.theme.pane
 import app.fasila.ui.theme.GlassCard
 import app.fasila.ui.theme.LocalGlass
 import app.fasila.ui.theme.TabularStyle
@@ -144,8 +146,10 @@ fun Composer(vm: MainViewModel) {
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = g.content,
                 unfocusedTextColor = g.content,
-                focusedBorderColor = g.accent,
-                unfocusedBorderColor = g.border,
+                focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                focusedContainerColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.16f),
+                unfocusedContainerColor = g.border,
                 cursorColor = g.accent,
             ),
         )
@@ -218,7 +222,7 @@ fun Composer(vm: MainViewModel) {
         // Preview line + conflict warning.
         val p = preview
         if (p != null) {
-            val range = if (p.end != null) "${fmt.time(p.start)} – ${fmt.time(p.end)}" else fmt.time(p.start)
+            val range = if (p.end != null) stringResource(R.string.range_to, fmt.time(p.start), fmt.time(p.end)) else fmt.time(p.start)
             Text(
                 stringResource(R.string.preview_today, range),
                 color = g.secondary, fontSize = 14.sp, style = TabularStyle,
@@ -229,8 +233,7 @@ fun Composer(vm: MainViewModel) {
                     Modifier
                         .padding(top = 8.dp)
                         .fillMaxWidth()
-                        .background(g.warning.copy(alpha = 0.14f), ChipShape)
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(vertical = 6.dp)
                         .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -242,10 +245,15 @@ fun Composer(vm: MainViewModel) {
                     )
                 }
                 suggestion?.let { s ->
-                    TextButton(onClick = { edit(d.withStart(s.anchorKey, s.anchorOffsetMinutes)) }) {
+                    // The suggestion is a lit chip, the same "lit" language as the rest of the app.
+                    TextButton(
+                        onClick = { edit(d.withStart(s.anchorKey, s.anchorOffsetMinutes)) },
+                        modifier = Modifier.padding(top = 6.dp).lit(g, ChipShape),
+                        shape = ChipShape,
+                    ) {
                         Text(
                             stringResource(R.string.move_to_fmt, describeAnchor(s.anchorKey, s.anchorOffsetMinutes, l)),
-                            color = g.accent, fontWeight = FontWeight.SemiBold,
+                            color = g.content, fontWeight = FontWeight.SemiBold,
                         )
                     }
                 }
@@ -264,7 +272,7 @@ fun Composer(vm: MainViewModel) {
                     draft = null
                     pinned = emptyMap()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = g.accent, contentColor = if (g.isLight) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color(0xFF0B1026)),
+                colors = ButtonDefaults.buttonColors(containerColor = g.accent, contentColor = androidx.compose.ui.graphics.Color(0xFF060A14)),
             ) { Text(stringResource(R.string.save)) }
         }
     }
@@ -331,8 +339,7 @@ fun <T> ChipMenu(label: String, options: List<Pair<String, T>>, a11y: String, on
             onClick = { open = true },
             modifier = Modifier
                 .heightIn(min = 40.dp)
-                .border(1.dp, g.border, ChipShape)
-                .background(g.fill, ChipShape)
+                .pane(g, ChipShape)
                 .semantics {
                     role = Role.DropdownList
                     contentDescription = "$a11y: $label"

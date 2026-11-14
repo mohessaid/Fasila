@@ -70,6 +70,8 @@ import app.fasila.ui.theme.GlassCard
 import app.fasila.ui.theme.LocalGlass
 import app.fasila.ui.theme.RowShape
 import app.fasila.ui.theme.TabularStyle
+import app.fasila.ui.theme.lit
+import app.fasila.ui.theme.pane
 
 @Composable
 fun TodayScreen(vm: MainViewModel, padding: PaddingValues, openSettings: () -> Unit) {
@@ -138,7 +140,7 @@ fun TodayScreen(vm: MainViewModel, padding: PaddingValues, openSettings: () -> U
             )
         }
 
-        item { DayDial(state, fmt, Modifier.fillMaxWidth().aspectRatio(1f)) }
+        item { CelestialHero(state, fmt, Modifier.fillMaxWidth()) }
         item { PrayerList(state, fmt) { explain = true } }
         item { NightCard(state, fmt) }
         if (state.today.polarFallback) item {
@@ -179,16 +181,11 @@ private fun Header(place: String, state: TodayState, fmt: TimeFormatter) {
             color = g.secondary, fontSize = 15.sp,
         )
         if (d.occasions.isNotEmpty()) {
-            FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                d.occasions.forEach { id ->
-                    Text(
-                        occasionName(id),
-                        color = g.content,
-                        fontSize = 13.sp,
-                        modifier = Modifier.background(g.border, ChipShape).padding(horizontal = 12.dp, vertical = 6.dp),
-                    )
-                }
-            }
+            Text(
+                d.occasions.map { occasionName(it) }.joinToString(", "),
+                color = g.accent, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 6.dp),
+            )
         }
     }
 }
@@ -197,7 +194,7 @@ private fun Header(place: String, state: TodayState, fmt: TimeFormatter) {
 private fun PrayerList(state: TodayState, fmt: TimeFormatter, onExplain: () -> Unit) {
     val g = LocalGlass.current
     val day = state.today
-    GlassCard(padding = 8.dp) {
+    GlassCard(padding = 10.dp) {
         for (key in Keys.LISTED) {
             val t = day.time(key)
             val isPrayer = key != Keys.SUNRISE
@@ -205,34 +202,41 @@ private fun PrayerList(state: TodayState, fmt: TimeFormatter, onExplain: () -> U
             val isNext = state.next?.let { it.key == key && it.time == t } == true
             val estimated = day.isEstimated(key)
             val ink = if (isPrayer) g.content else g.secondary
+            val past = t != null && t < state.now && !isCurrent
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 52.dp)
-                    .background(if (isCurrent) g.border else androidx.compose.ui.graphics.Color.Transparent, RowShape)
+                    .heightIn(min = if (isNext) 64.dp else 50.dp)
+                    .then(
+                        when {
+                            isNext -> Modifier.lit(g)
+                            isCurrent -> Modifier.pane(g)
+                            else -> Modifier
+                        },
+                    )
                     .semantics(mergeDescendants = true) {}
                     .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    prayerName(key, day.isFriday),
-                    color = ink,
-                    fontSize = 17.sp,
-                    fontWeight = if (isCurrent || isNext) FontWeight.SemiBold else FontWeight.Normal,
-                )
-                if (isNext) {
-                    Spacer(Modifier.width(8.dp))
+                Column {
                     Text(
-                        stringResource(R.string.next_badge), color = g.accent, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                        prayerName(key, day.isFriday),
+                        color = if (past || !isPrayer) g.tertiary else ink,
+                        fontSize = if (isNext) 19.sp else if (isPrayer) 17.sp else 14.sp,
+                        fontWeight = if (isNext) FontWeight.SemiBold else FontWeight.Medium,
                     )
+                    if (isNext && t != null) {
+                        Text(stringResource(R.string.in_time, fmt.countdown(t - state.now)), color = g.secondary, fontSize = 12.5.sp, style = TabularStyle)
+                    } else if (isCurrent) {
+                        Text(stringResource(R.string.now), color = g.secondary, fontSize = 12.5.sp)
+                    }
                 }
                 if (estimated && t != null) {
                     Spacer(Modifier.width(8.dp))
                     Row(
                         Modifier
-                            .background(g.border, ChipShape)
                             .clickable(role = Role.Button, onClick = onExplain)
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                            .padding(horizontal = 4.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(Icons.Filled.Info, contentDescription = null, tint = g.warning, modifier = Modifier.size(14.dp))
@@ -243,7 +247,10 @@ private fun PrayerList(state: TodayState, fmt: TimeFormatter, onExplain: () -> U
                 Spacer(Modifier.weight(1f))
                 Text(
                     if (t == null) stringResource(R.string.unresolved) else fmt.time(t),
-                    color = ink, fontSize = 17.sp, style = TabularStyle,
+                    color = if (past || !isPrayer) g.tertiary else ink,
+                    fontSize = if (isNext) 20.sp else if (isPrayer) 18.sp else 14.sp,
+                    fontWeight = if (isNext) FontWeight.SemiBold else FontWeight.Normal,
+                    style = TabularStyle,
                 )
             }
         }
@@ -256,15 +263,15 @@ private fun NightCard(state: TodayState, fmt: TimeFormatter) {
     GlassCard(padding = 16.dp) {
         Row(Modifier.fillMaxWidth()) {
             Column(Modifier.weight(1f)) {
-                Text(prayerName(Keys.MIDNIGHT), color = g.secondary, fontSize = 13.sp)
+                Text(prayerName(Keys.MIDNIGHT), color = g.tertiary, fontSize = 13.sp)
                 Text(fmt.time(state.today.midnight), color = g.content, style = TabularStyle)
             }
             Column(Modifier.weight(1f)) {
-                Text(prayerName(Keys.LAST_THIRD), color = g.secondary, fontSize = 13.sp)
+                Text(prayerName(Keys.LAST_THIRD), color = g.tertiary, fontSize = 13.sp)
                 Text(fmt.time(state.today.lastThird), color = g.content, style = TabularStyle)
             }
             Column(Modifier.weight(1f)) {
-                Text(prayerName(Keys.IMSAK), color = g.secondary, fontSize = 13.sp)
+                Text(prayerName(Keys.IMSAK), color = g.tertiary, fontSize = 13.sp)
                 Text(fmt.time(state.tomorrow.imsak), color = g.content, style = TabularStyle)
             }
         }

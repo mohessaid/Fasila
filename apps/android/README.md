@@ -8,7 +8,8 @@ The app never re-implements them; it stores the shared JSON documents, builds a
 
 ## Requirements
 
-- JDK 17+ and Android SDK with platform 35 (Android Studio Ladybug or newer, or command-line tools)
+- A full JDK (with `javac`) that Gradle 9.9 supports, e.g. JDK 21 or 25, and the Android SDK with platform 37 (compileSdk) and 35
+- Gradle 9.9 (wrapper), AGP 9.5, Kotlin 2.4. AGP 9 compiles Kotlin itself, so there is no `kotlin-android` plugin
 - Android NDK (r26+), e.g. `sdkmanager "ndk;27.2.12479018"`
 - Rust (stable) with `rustup`, plus `cargo install cargo-ndk`
 
@@ -78,3 +79,8 @@ app/src/main/java/app/fasila/
 `USE_EXACT_ALARM` is restricted to alarm/clock/calendar apps; Fasila's prayer alarms and
 user alarms are its core function, but if the listing is rejected, drop it, remove `maxSdkVersion` from
 `SCHEDULE_EXACT_ALARM` and rely on that user-granted permission — the code already handles both.
+
+## Fonts
+
+`res/font/` bundles Inter (Rasmus Andersson) and Tajawal (Boutros Fonts), both under the
+SIL Open Font License 1.1. Latin text uses Inter, Arabic text uses Tajawal.

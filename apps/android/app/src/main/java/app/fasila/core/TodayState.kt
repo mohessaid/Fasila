@@ -14,6 +14,7 @@ data class TodayState(
     val tomorrow: DayInfo,
     val current: PrayerMoment?,
     val next: PrayerMoment?,
+    val sky: Sky = Sky.Night,
 ) {
     val countdownSeconds: Long get() = next?.let { it.time - now } ?: 0
     val days: List<DayInfo> get() = listOf(yesterday, today, tomorrow)

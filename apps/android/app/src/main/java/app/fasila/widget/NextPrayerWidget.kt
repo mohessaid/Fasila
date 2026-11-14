@@ -36,7 +36,6 @@ import app.fasila.MainActivity
 import app.fasila.R
 import app.fasila.core.FasilaRepository
 import app.fasila.core.Keys
-import app.fasila.core.SkyState
 import app.fasila.core.TimeFormatter
 import app.fasila.core.coreLang
 import app.fasila.core.currentLocale
@@ -56,14 +55,14 @@ class NextPrayerWidget : GlanceAppWidget() {
         val state = repo.snapshot()
         val fmt = TimeFormatter.from(context, state.zone)
         val lang = coreLang(context.currentLocale())
-        val sky = SkyState.at(state).dominant
+        val sky = state.sky
         val next = state.next
         val nextName = when {
             next == null -> ""
             next.friday && next.key == Keys.DHUHR -> context.getString(R.string.jumuah)
             else -> timeKeyName(next.key, lang)
         }
-        val ink = if (sky.isLight) Color(0xFF0B1026) else Color.White
+        val ink = Color.White
         val model = WidgetModel(
             place = repo.config.value.locationName,
             label = context.getString(R.string.next_prayer),
@@ -72,7 +71,13 @@ class NextPrayerWidget : GlanceAppWidget() {
             prayers = Keys.PRAYERS.map { k ->
                 Triple(timeKeyName(k, lang), fmt.time(state.today.time(k)), k == next?.key)
             },
-            background = Color(sky.top),
+            // Upper sky colour, darkened by the adaptive glass tint so white text stays legible.
+            background = run {
+                val c = sky.colors[1]
+                val t = (sky.glassTint * 0.7f).coerceIn(0f, 1f)
+                fun ch(shift: Int, night: Int) = (((c shr shift) and 0xFF) * (1 - t) + night * t).toInt()
+                Color(red = ch(16, 6), green = ch(8, 10), blue = ch(0, 20))
+            },
             ink = ink,
             description = context.getString(R.string.a11y_next_prayer, nextName, fmt.time(next?.time)),
         )

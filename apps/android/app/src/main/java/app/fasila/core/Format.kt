@@ -41,7 +41,7 @@ class TimeFormatter(val locale: Locale, val zone: ZoneId, is24Hour: Boolean) {
         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withDecimalStyle(digits)
     private val integers: NumberFormat = NumberFormat.getIntegerInstance(locale).apply { isGroupingUsed = false }
 
-    fun time(epochSeconds: Long?): String = epochSeconds?.let { clock.format(Instant.ofEpochSecond(it)) } ?: "—"
+    fun time(epochSeconds: Long?): String = epochSeconds?.let { clock.format(Instant.ofEpochSecond(it)) } ?: "--:--"
     fun longDate(date: LocalDate): String = longDate.format(date)
     fun mediumDate(date: LocalDate): String = mediumDate.format(date)
     fun monthYear(date: LocalDate): String = monthYear.format(date)

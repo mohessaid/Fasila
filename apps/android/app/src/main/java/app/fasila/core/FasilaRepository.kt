@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import uniffi.fasila_ffi.DayInfo
 import uniffi.fasila_ffi.FasilaEngine
+import uniffi.fasila_ffi.moonPhase
 import uniffi.fasila_ffi.FasilaException
 import uniffi.fasila_ffi.MethodInfo
 import uniffi.fasila_ffi.OccurrenceInfo
@@ -110,8 +111,14 @@ class FasilaRepository private constructor(context: Context) {
             yesterday = days[0],
             today = days[1],
             tomorrow = days[2],
-            current = tl.currentAt(now),
+            // Between sunrise and Dhuhr no obligatory prayer is current (Fajr ends at sunrise).
+            current = tl.currentAt(now)?.takeUnless { c ->
+                c.key == Keys.FAJR && days[1].sunrise?.let { now >= it.toLong() } == true
+            },
             next = tl.nextAfter(now),
+            sky = runCatching {
+                Sky.of(c.engine.sky(date.year, date.monthValue.toUByte(), date.dayOfMonth.toUByte(), now), moonPhase(now))
+            }.getOrDefault(Sky.Night),
         )
     }
 

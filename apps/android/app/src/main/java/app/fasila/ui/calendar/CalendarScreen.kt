@@ -58,6 +58,8 @@ import app.fasila.ui.rememberFormatter
 import app.fasila.ui.theme.GlassCard
 import app.fasila.ui.theme.LocalGlass
 import app.fasila.ui.theme.RowShape
+import app.fasila.ui.theme.lit
+import app.fasila.ui.theme.pane
 import app.fasila.ui.theme.TabularStyle
 import uniffi.fasila_ffi.DayInfo
 import java.time.DayOfWeek
@@ -107,7 +109,7 @@ fun CalendarScreen(vm: MainViewModel, padding: PaddingValues) {
                     val a = days.first()
                     val b = days.last()
                     val hijri = if (a.hijriMonth == b.hijriMonth) "${hijriMonth(a.hijriMonth.toInt())} ${fmt.number(a.hijriYear)}"
-                    else "${hijriMonth(a.hijriMonth.toInt())} – ${hijriMonth(b.hijriMonth.toInt())} ${fmt.number(b.hijriYear)}"
+                    else stringResource(R.string.range_to, hijriMonth(a.hijriMonth.toInt()), hijriMonth(b.hijriMonth.toInt())) + " " + fmt.number(b.hijriYear)
                     Text(hijri, color = g.secondary, fontSize = 14.sp)
                 }
             }
@@ -169,8 +171,13 @@ private fun DayCell(
     Column(
         Modifier
             .fillMaxSize()
-            .background(if (isSelected) g.border else androidx.compose.ui.graphics.Color.Transparent, RowShape)
-            .then(if (isToday) Modifier.border(1.5.dp, g.accent, RowShape) else Modifier)
+            .then(
+                when {
+                    isSelected -> Modifier.lit(g)
+                    isToday -> Modifier.pane(g)
+                    else -> Modifier
+                },
+            )
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = a11y
@@ -181,7 +188,7 @@ private fun DayCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(gregorian, color = g.content, fontSize = 16.sp, fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal)
+        Text(gregorian, color = if (isToday) g.accent else g.content, fontSize = 16.sp, fontWeight = if (isToday || isSelected) FontWeight.Bold else FontWeight.Normal)
         Text(hijri, color = g.secondary, fontSize = 11.sp)
         if (d.occasions.isNotEmpty()) {
             Spacer(Modifier.size(2.dp))

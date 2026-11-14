@@ -61,13 +61,13 @@
     <string name="rec_fridays">Le vendredi</string>
     <string name="rec_weekdays_mon_thu">Lundi et jeudi</string>
     <string name="rec_weekly">Chaque %1$s</string>
-    <string name="rec_ayyam_al_bid">Ayyām al-Bīḍ (13–15)</string>
+    <string name="rec_ayyam_al_bid">Ayyām al-Bīḍ (13-15)</string>
     <string name="rec_ramadan">Chaque jour du Ramadan</string>
     <string name="rec_hijri_monthly">Jours %1$s de chaque mois hégirien</string>
     <string name="rec_hijri_yearly">Chaque année le %1$s %2$s</string>
     <string name="rec_hijri_month">Chaque jour de %1$s</string>
     <string name="preview_today">Aujourd\'hui : %1$s</string>
-    <string name="conflict_fmt">Chevauche %1$s (réservé %2$s – %3$s)</string>
+    <string name="conflict_fmt">Chevauche %1$s (réservé de %2$s à %3$s)</string>
     <string name="conflict_short">Chevauche une prière</string>
     <string name="move_to_fmt">Déplacer à %1$s</string>
     <string name="clear">Effacer</string>
@@ -139,4 +139,11 @@
     <string name="notif_pre_title">%1$s dans %2$s min</string>
     <string name="notif_starts_in">Commence dans %1$s min · %2$s</string>
     <string name="action_dismiss">Arrêter</string>
+    <string name="is_next">Prochaine : %1$s</string>
+    <string name="at_time">à %1$s</string>
+    <string name="lunar_day_line">JOUR LUNAIRE %1$s · %2$s %% ÉCLAIRÉE</string>
+    <string name="white_days_title">JOURS BLANCS</string>
+    <string name="range_to">%1$s à %2$s</string>
+    <string name="in_time">dans %1$s</string>
+    <string name="now">Maintenant</string>
 </resources>

@@ -92,8 +92,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         )
 
         // ------------------------------------------------------------ location
-        SectionTitle(stringResource(R.string.section_location))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_location), Modifier.padding(bottom = 4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.LocationOn, null, tint = g.content)
                 Column(Modifier.weight(1f).padding(start = 8.dp)) {
@@ -111,8 +111,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         // ------------------------------------------------------------ calculation
-        SectionTitle(stringResource(R.string.section_calculation))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_calculation), Modifier.padding(bottom = 4.dp))
             LabeledMenu(
                 stringResource(R.string.method),
                 vm.methods.firstOrNull { it.id == config.method }?.name ?: config.method,
@@ -136,8 +136,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         // ------------------------------------------------------------ adjustments
-        SectionTitle(stringResource(R.string.section_adjustments))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_adjustments), Modifier.padding(bottom = 4.dp))
             FasilaConfig.ADJUSTABLE.forEach { key ->
                 Stepper(prayerName(key), config.adjustment(key), -30..30, fmt, suffix = R.string.minutes_short) { v ->
                     vm.updateConfig { it.set("params.adjustments.$key", v.toDouble()) }
@@ -146,8 +146,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         // ------------------------------------------------------------ hijri
-        SectionTitle(stringResource(R.string.section_hijri))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_hijri), Modifier.padding(bottom = 4.dp))
             Stepper(stringResource(R.string.hijri_adjustment), config.hijriDayAdjustment, -2..2, fmt, suffix = R.string.days_short) { v ->
                 vm.updateConfig { it.set("hijri.day_adjustment", v) }
             }
@@ -155,8 +155,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         // ------------------------------------------------------------ notifications
-        SectionTitle(stringResource(R.string.section_notifications))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_notifications), Modifier.padding(bottom = 4.dp))
             Keys.PRAYERS.forEach { key ->
                 ToggleRow(stringResource(R.string.adhan_for, prayerName(key)), key in prefs.adhan) { on ->
                     vm.updatePrefs { it.copy(adhan = if (on) it.adhan + key else it.adhan - key) }
@@ -173,8 +173,8 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
         }
 
         // ------------------------------------------------------------ display
-        SectionTitle(stringResource(R.string.section_display))
         GlassCard {
+            SectionTitle(stringResource(R.string.section_display), Modifier.padding(bottom = 4.dp))
             val current = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore(',').substringBefore('-')
             val languages = listOf(
                 stringResource(R.string.language_system) to "",
@@ -218,14 +218,16 @@ private fun CitySearch(vm: MainViewModel) {
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = g.content,
             unfocusedTextColor = g.content,
-            focusedBorderColor = g.accent,
-            unfocusedBorderColor = g.border,
+            focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+            unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+            focusedContainerColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.16f),
+            unfocusedContainerColor = g.border,
             cursorColor = g.accent,
         ),
     )
     results.forEach { city ->
         Text(
-            "${city.displayName(locale)} · ${city.country}",
+            city.displayName(locale),
             color = g.content,
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,15 +238,15 @@ private fun CitySearch(vm: MainViewModel) {
                 }
                 .padding(horizontal = 8.dp, vertical = 12.dp),
         )
-        HorizontalDivider(color = g.border)
     }
 }
 
 @Composable
 private fun <T> LabeledMenu(label: String, value: String, options: List<Pair<String, T>>, onSelect: (T) -> Unit) {
     val g = LocalGlass.current
-    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = g.content, modifier = Modifier.weight(1f))
+    // Label above the menu: long Arabic/French values never squeeze the label.
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Text(label, color = g.secondary, fontSize = 13.sp, modifier = Modifier.padding(bottom = 6.dp))
         ChipMenu(value, options, label, onSelect)
     }
 }
