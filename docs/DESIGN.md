@@ -34,6 +34,10 @@ Always dark, lit by a warm lamp-light accent.
 
 ## The living sky (signature element)
 
+The sky model lives in the shared core (`fasila-core::sky`, FFI `FasilaEngine.sky(date, now)`):
+colour stops, star opacity and the adaptive glass tint. Android and iOS read it from there;
+the desktop mirrors it in `apps/desktop/src/lib/sky.ts`.
+
 The background is a 4-stop vertical gradient that blends continuously through the
 prayer day. Position in the day (`progress`, 0 at Fajr → 1 at the next Fajr) is
 **pinned to the real prayer times**: Fajr → 0, sunrise → 0.08, Dhuhr → 0.35,
