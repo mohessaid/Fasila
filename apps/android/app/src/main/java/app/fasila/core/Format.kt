@@ -21,11 +21,30 @@ fun coreLang(locale: Locale): String = when (locale.language) {
 fun Context.currentLocale(): Locale = resources.configuration.locales[0] ?: Locale.getDefault()
 
 /**
+ * The locale used for digits and dates. Arabic without a region takes the location's
+ * country, so ICU picks the digits people there use (Western in DZ/MA/TN, Arabic-Indic
+ * in EG/SA). `numerals` "latn"/"arab" forces one; "auto" leaves it to the region.
+ */
+fun formattingLocale(locale: Locale, country: String, numerals: String): Locale {
+    val cc = country.uppercase()
+    val base = if (locale.language == "ar" && locale.country.isEmpty() && cc.matches(Regex("[A-Z]{2}"))) {
+        Locale.Builder().setLanguage("ar").setRegion(cc).build()
+    } else {
+        locale
+    }
+    return when (numerals) {
+        "latn", "arab" -> Locale.Builder().setLocale(base).setUnicodeLocaleKeyword("nu", numerals).build()
+        else -> base
+    }
+}
+
+/**
  * Formats instants in the *configured location's* time zone, with the locale's digits
  * (Arabic-Indic in locales whose default numbering system uses them) and the user's
  * 12/24-hour preference.
  */
-class TimeFormatter(val locale: Locale, val zone: ZoneId, is24Hour: Boolean) {
+class TimeFormatter(requested: Locale, val zone: ZoneId, is24Hour: Boolean, country: String = "", numerals: String = "auto") {
+    val locale: Locale = formattingLocale(requested, country, numerals)
     private val digits = DecimalStyle.of(locale)
     private val clock: DateTimeFormatter = DateTimeFormatter
         .ofPattern(DateFormat.getBestDateTimePattern(locale, if (is24Hour) "Hm" else "hm"), locale)
@@ -58,7 +77,12 @@ class TimeFormatter(val locale: Locale, val zone: ZoneId, is24Hour: Boolean) {
     }
 
     companion object {
-        fun from(context: Context, zone: ZoneId): TimeFormatter =
-            TimeFormatter(context.currentLocale(), zone, DateFormat.is24HourFormat(context))
+        fun from(context: Context, zone: ZoneId): TimeFormatter {
+            val repo = FasilaRepository.get(context)
+            return TimeFormatter(
+                context.currentLocale(), zone, DateFormat.is24HourFormat(context),
+                repo.config.value.country, repo.prefs.value.numerals,
+            )
+        }
     }
 }

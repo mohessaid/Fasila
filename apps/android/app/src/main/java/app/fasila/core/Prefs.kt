@@ -17,6 +17,8 @@ data class AppPrefs(
     val locationSet: Boolean = false,
     /** Location follows the device (re-read on time-zone change). */
     val autoLocation: Boolean = true,
+    /** "auto" (digits of the location's region), "latn" (0-9) or "arab" (٠-٩). */
+    val numerals: String = "auto",
 )
 
 class PrefsStore(context: Context) {
@@ -29,6 +31,7 @@ class PrefsStore(context: Context) {
         methodUserSet = sp.getBoolean("method_user_set", false),
         locationSet = sp.getBoolean("location_set", false),
         autoLocation = sp.getBoolean("auto_location", true),
+        numerals = sp.getString("numerals", "auto") ?: "auto",
     )
 
     fun save(p: AppPrefs) {
@@ -39,6 +42,7 @@ class PrefsStore(context: Context) {
             .putBoolean("method_user_set", p.methodUserSet)
             .putBoolean("location_set", p.locationSet)
             .putBoolean("auto_location", p.autoLocation)
+            .putString("numerals", p.numerals)
             .apply()
     }
 

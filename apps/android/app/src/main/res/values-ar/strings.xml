@@ -147,4 +147,6 @@
     <string name="range_to">%1$s إلى %2$s</string>
     <string name="in_time">بعد %1$s</string>
     <string name="now">الآن</string>
+    <string name="numerals">الأرقام</string>
+    <string name="numerals_auto">تلقائي (حسب المنطقة)</string>
 </resources>

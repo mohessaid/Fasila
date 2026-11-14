@@ -187,6 +187,16 @@ fun SettingsScreen(vm: MainViewModel, padding: PaddingValues) {
                 languages.firstOrNull { it.second == current }?.first ?: languages.first().first,
                 languages,
             ) { tag -> AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag)) }
+            val numeralOptions = listOf(
+                stringResource(R.string.numerals_auto) to "auto",
+                "0 1 2 3" to "latn",
+                "٠ ١ ٢ ٣" to "arab",
+            )
+            LabeledMenu(
+                stringResource(R.string.numerals),
+                numeralOptions.firstOrNull { it.second == prefs.numerals }?.first ?: numeralOptions.first().first,
+                numeralOptions,
+            ) { v -> vm.updatePrefs { it.copy(numerals = v) } }
             ToggleRow(stringResource(R.string.solid_panes), prefs.solidPanes) { on -> vm.updatePrefs { it.copy(solidPanes = on) } }
             Text(stringResource(R.string.solid_panes_help), color = g.secondary, fontSize = 13.sp)
         }

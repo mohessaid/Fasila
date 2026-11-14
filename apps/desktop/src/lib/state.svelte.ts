@@ -33,6 +33,7 @@ class AppState {
     makeFormat({
       lang: this.lang, numerals: this.prefs.numerals, clock: this.prefs.clock,
       timeZone: this.config?.location.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      country: this.config?.location.country,
     }),
   );
   todayDay = $derived(this.days[1]);

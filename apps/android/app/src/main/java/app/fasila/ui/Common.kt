@@ -4,6 +4,8 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import app.fasila.core.FasilaRepository
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -34,7 +36,10 @@ fun rememberFormatter(zone: ZoneId): TimeFormatter {
     val context = LocalContext.current
     val locale = currentLocale()
     val is24 = DateFormat.is24HourFormat(context)
-    return remember(locale, zone, is24) { TimeFormatter(locale, zone, is24) }
+    val repo = remember { FasilaRepository.get(context) }
+    val country = repo.config.collectAsState().value.country
+    val numerals = repo.prefs.collectAsState().value.numerals
+    return remember(locale, zone, is24, country, numerals) { TimeFormatter(locale, zone, is24, country, numerals) }
 }
 
 /** Prayer/time-key display name from the core; Dhuhr becomes Jumuʿah on Fridays. */

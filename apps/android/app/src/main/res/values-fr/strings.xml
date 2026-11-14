@@ -146,4 +146,6 @@
     <string name="range_to">%1$s à %2$s</string>
     <string name="in_time">dans %1$s</string>
     <string name="now">Maintenant</string>
+    <string name="numerals">Chiffres</string>
+    <string name="numerals_auto">Automatique (selon la région)</string>
 </resources>

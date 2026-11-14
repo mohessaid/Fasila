@@ -1,11 +1,18 @@
 import type { Lang } from "./i18n";
 
-export interface FormatOpts { lang: Lang; numerals: "auto" | "latn" | "arab"; clock: "24h" | "12h"; timeZone: string }
+export interface FormatOpts {
+  lang: Lang; numerals: "auto" | "latn" | "arab"; clock: "24h" | "12h"; timeZone: string;
+  /** ISO country of the configured location; picks regional digits on "auto". */
+  country?: string;
+}
 
+/** Arabic takes its region from the location, so ICU chooses the digits people there
+ *  use: Western in DZ/MA/TN, Arabic-Indic in EG/SA. "latn"/"arab" force one. */
 function locale(o: FormatOpts): string {
-  const base = o.lang === "ar" ? "ar" : o.lang === "fr" ? "fr-FR" : "en-GB";
-  const nu = o.numerals === "auto" ? (o.lang === "ar" ? "arab" : "latn") : o.numerals;
-  return `${base}-u-nu-${nu}`;
+  const cc = (o.country ?? "").toUpperCase();
+  const region = /^[A-Z]{2}$/.test(cc) ? cc : "";
+  const base = o.lang === "ar" ? (region ? `ar-${region}` : "ar") : o.lang === "fr" ? "fr-FR" : "en-GB";
+  return o.numerals === "auto" ? base : `${base}-u-nu-${o.numerals}`;
 }
 
 function safeTz(tz: string): string | undefined {
@@ -27,7 +34,7 @@ export function makeFormat(o: FormatOpts) {
   const longDate = new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   const monthYear = new Intl.DateTimeFormat(loc, { month: "long", year: "numeric", timeZone: "UTC" });
   const isoToDate = (iso: string) => new Date(iso + "T00:00:00Z");
-  const arabDigits = loc.endsWith("-arab");
+  const arabDigits = num.resolvedOptions().numberingSystem === "arab";
   return {
     /** Localize ASCII digits inside a string produced by the Rust core. */
     digits: (s: string) => (arabDigits ? s.replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]) : s),
