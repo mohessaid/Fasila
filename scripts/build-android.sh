@@ -13,8 +13,17 @@ APP="$ROOT/apps/android/app"
 JNI_DIR="$APP/src/main/jniLibs"
 BINDINGS_DIR="$APP/src/generated/uniffi"
 PROFILE="${PROFILE:-release}"
-ABIS=(arm64-v8a armeabi-v7a x86_64)
-TARGETS=(aarch64-linux-android armv7-linux-androideabi x86_64-linux-android)
+#   ABIS="x86_64" scripts/build-android.sh   # one ABI (fast iteration on the emulator)
+read -r -a ABIS <<< "${ABIS:-arm64-v8a armeabi-v7a x86_64}"
+TARGETS=()
+for abi in "${ABIS[@]}"; do
+  case "$abi" in
+    arm64-v8a) TARGETS+=(aarch64-linux-android) ;;
+    armeabi-v7a) TARGETS+=(armv7-linux-androideabi) ;;
+    x86_64) TARGETS+=(x86_64-linux-android) ;;
+    *) echo "unknown ABI $abi" >&2; exit 1 ;;
+  esac
+done
 API_LEVEL=26
 
 cd "$ROOT"

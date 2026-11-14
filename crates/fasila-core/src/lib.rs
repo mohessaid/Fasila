@@ -17,6 +17,7 @@ pub mod moon;
 pub mod parse;
 pub mod prayer;
 pub mod schedule;
+pub mod sky;
 mod ummalqura_data;
 
 pub use config::{Config, Location};

@@ -90,6 +90,22 @@ pub struct ParsedInfo {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct SkyInfo {
+    /// 0 at Fajr -> 1 at the next Fajr, pinned to real prayer times.
+    pub progress: f64,
+    /// 0 at sunrise -> 1 at Maghrib (sun's place on its arc).
+    pub sun: f64,
+    pub is_daytime: bool,
+    /// `night`, `dawn`, `day` or `dusk`.
+    pub time_of_day: String,
+    /// Four gradient stops top -> bottom, 0xRRGGBB.
+    pub colors: Vec<u32>,
+    pub star_opacity: f64,
+    /// Opacity of the #060A14 tint under glass panels (keeps text AA on bright skies).
+    pub glass_tint: f64,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct MoonInfo {
     /// 0 = new, 0.25 = first quarter, 0.5 = full, 0.75 = last quarter.
     pub phase: f64,
@@ -252,6 +268,28 @@ impl FasilaEngine {
             .collect())
     }
 
+    /// The living sky at `now` (unix seconds), for the local civil date `year-month-day`.
+    pub fn sky(&self, year: i32, month: u8, day: u8, now: i64) -> Result<SkyInfo, FasilaError> {
+        let d = date(year, month, day)?;
+        let c = self.config.coordinates();
+        let p = &self.engine.params;
+        let [y, t, n] = [-1, 0, 1].map(|i| core::compute(d.add_days(i), c, p));
+        let s = core::sky::sky_at(&y, &t, &n, now);
+        Ok(SkyInfo {
+            progress: s.progress,
+            sun: s.sun,
+            is_daytime: s.is_daytime,
+            time_of_day: serde_json::to_value(s.time_of_day)
+                .unwrap()
+                .as_str()
+                .unwrap_or("night")
+                .to_string(),
+            colors: s.colors.to_vec(),
+            star_opacity: s.star_opacity,
+            glass_tint: s.glass_tint,
+        })
+    }
+
     /// Qibla bearing in degrees from true north.
     pub fn qibla(&self) -> f64 {
         core::qibla(self.config.coordinates())
@@ -409,5 +447,7 @@ mod tests {
         let jafari = method_params_json("jafari".into()).unwrap();
         assert!(jafari.contains("\"fajr_angle\":16.0"), "{jafari}");
         assert_eq!(recommended_method("dz".into()), "algeria");
+        let sky = e.sky(2026, 11, 13, d.dhuhr.unwrap()).unwrap();
+        assert!(sky.is_daytime && sky.colors.len() == 4 && sky.time_of_day == "day");
     }
 }
