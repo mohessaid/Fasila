@@ -53,6 +53,8 @@ data class GlassColors(
     val accent: Color,
     val warning: Color,
     val solid: Boolean,
+    /** Opacity of the dark tint the sky needs right now (0.36 at night, up to 0.84). */
+    val tint: Float = 0.36f,
 ) {
     /** Always false: the sky is always dark enough under glass for light ink. */
     val isLight: Boolean get() = false
@@ -80,8 +82,14 @@ fun glassColors(sky: Sky, solid: Boolean): GlassColors {
         accent = Accent,
         warning = Color(0xFFFFB26B),
         solid = solid,
+        tint = sky.glassTint,
     )
 }
+
+/** Small text that sits directly on the sky goes on a frosted pill tinted for the sky. */
+fun Modifier.skyPill(colors: GlassColors): Modifier = this
+    .background(Night.copy(alpha = 0.18f + colors.tint * 0.5f), ChipShape)
+    .padding(horizontal = 14.dp, vertical = 5.dp)
 
 val CardShape = RoundedCornerShape(24.dp)
 val RowShape = RoundedCornerShape(16.dp)

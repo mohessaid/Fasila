@@ -42,7 +42,8 @@ fun rememberFormatter(zone: ZoneId): TimeFormatter {
 fun prayerName(key: String, friday: Boolean = false): String {
     if (friday && key == Keys.DHUHR) return stringResource(R.string.jumuah)
     val l = lang()
-    return remember(key, l) { timeKeyName(key, l) }
+    // The core's names suit sentences ("le lever du soleil"); lists start with a capital.
+    return remember(key, l) { timeKeyName(key, l).replaceFirstChar { it.titlecase() } }
 }
 
 @Composable
@@ -76,7 +77,8 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         modifier = modifier.padding(start = 4.dp, bottom = 8.dp, top = 8.dp),
-        color = LocalGlass.current.secondary,
+        // Sits directly on the sky: full-strength ink (secondary ink measured 4.3:1 at noon).
+        color = LocalGlass.current.content,
         fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
     )

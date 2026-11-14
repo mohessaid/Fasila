@@ -140,7 +140,7 @@ fun TodayScreen(vm: MainViewModel, padding: PaddingValues, openSettings: () -> U
             )
         }
 
-        item { CelestialHero(state, fmt, Modifier.fillMaxWidth()) }
+        item { CelestialHero(state, fmt, config.latitude, Modifier.fillMaxWidth()) }
         item { PrayerList(state, fmt) { explain = true } }
         item { NightCard(state, fmt) }
         if (state.today.polarFallback) item {

@@ -110,7 +110,7 @@ A 268-unit-high scene above the countdown:
   is a radial gradient from foreground to accent.
 - **Moon** (otherwise): centred near the top, **drawn in the real phase** computed
   by the core (`moon_phase`), with three faint craters and a slow shimmer. It is
-  mirrored in the southern hemisphere.
+  mirrored in the southern hemisphere (desktop and Android).
 - **Under the scene:** "*Asr is next*", the countdown, "at 15:19". At night there is
   also a line in the accent colour, *LUNAR DAY 5 · 26 % LIT*, or *AYYĀM AL-BĪḌ*
   on the 13th–15th. The lunar day is the **Hijri day under the user's country

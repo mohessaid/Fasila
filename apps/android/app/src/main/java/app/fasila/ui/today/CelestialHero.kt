@@ -1,10 +1,6 @@
 package app.fasila.ui.today
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -29,6 +25,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -64,7 +62,7 @@ private val Muted = Color(0xFFCBD5E1)
  * real, computed phase. Below it: the next prayer, the countdown and its time.
  */
 @Composable
-fun CelestialHero(state: TodayState, fmt: TimeFormatter, modifier: Modifier = Modifier) {
+fun CelestialHero(state: TodayState, fmt: TimeFormatter, latitude: Double, modifier: Modifier = Modifier) {
     val g = LocalGlass.current
     val sky = state.sky
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -78,10 +76,8 @@ fun CelestialHero(state: TodayState, fmt: TimeFormatter, modifier: Modifier = Mo
 
     val sunPos by animateFloatAsState(sky.sun, tween(if (reduceMotion) 0 else 1200), label = "sun")
     val day01 by animateFloatAsState(if (sky.isDaytime) 1f else 0f, tween(if (reduceMotion) 0 else 1200), label = "day")
-    val pulse = if (reduceMotion) 0.6f else {
-        val t = rememberInfiniteTransition(label = "glow")
-        t.animateFloat(0.4f, 0.8f, infiniteRepeatable(tween(2500), RepeatMode.Reverse), label = "pulse").value
-    }
+    // A steady glow: an infinite pulse would redraw the hero every frame all day (battery).
+    val pulse = 0.6f
     val measurer = rememberTextMeasurer()
     val labelStyle = LocalTextStyle.current.merge(TextStyle(color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium))
     val markers = listOfNotNull(
@@ -147,7 +143,11 @@ fun CelestialHero(state: TodayState, fmt: TimeFormatter, modifier: Modifier = Mo
                 )
             }
             // Moon, in its real computed phase.
-            if (day01 < 0.99f) moon(Offset(300 * s, 118 * s), 92 * s, sky.moonPhase, 1f - day01)
+            if (day01 < 0.99f) {
+                val mc = Offset(300 * s, 118 * s)
+                // Seen from the southern hemisphere the moon is mirrored.
+                withTransform({ if (latitude < 0) scale(-1f, 1f, mc) }) { moon(mc, 92 * s, sky.moonPhase, 1f - day01) }
+            }
         }
 
         Text(
@@ -230,9 +230,12 @@ private fun DrawScope.moon(c: Offset, body: Float, phase: Float, alpha: Float) {
         // Terminator: an ellipse whose half-width depends on the phase.
         val e = if (waxing) phase else phase - 0.5f
         val rx = if (e < 0.25f) r * (1 - e / 0.25f) else r * ((e - 0.25f) / 0.25f)
-        val bulgesOut = e >= 0.25f
+        // Gibbous: the terminator bulges away from the lit limb; crescent: towards it.
+        // Waxing: crescent for e < 0.25. Waning: gibbous for e < 0.25 (just after full).
+        val gibbous = if (waxing) e >= 0.25f else e < 0.25f
+        val bulgeRight = waxing != gibbous
         val term = Rect(c.x - rx, c.y - r, c.x + rx, c.y + r)
-        val sweep = if (waxing) { if (bulgesOut) 180f else -180f } else { if (bulgesOut) -180f else 180f }
+        val sweep = if (bulgeRight) -180f else 180f
         lit.arcTo(term, 90f, sweep, false)
         lit.close()
         drawPath(lit, Brush.linearGradient(listOf(Ink, Color(0xFFE2E8F0), Muted), start = Offset(c.x - r, c.y - r), end = Offset(c.x + r, c.y + r)), alpha = alpha)

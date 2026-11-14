@@ -56,6 +56,7 @@ import app.fasila.ui.MainViewModel
 import app.fasila.ui.rememberFormatter
 import app.fasila.ui.theme.GlassCard
 import app.fasila.ui.theme.LocalGlass
+import app.fasila.ui.theme.skyPill
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -217,7 +218,7 @@ fun QiblaScreen(vm: MainViewModel, padding: PaddingValues) {
             }
         }
 
-        Text(description, color = if (aligned) g.accent else g.content, fontSize = 18.sp, textAlign = TextAlign.Center)
+        Text(description, color = if (aligned) g.accent else g.content, fontSize = 17.sp, textAlign = TextAlign.Center, modifier = Modifier.skyPill(g))
 
         GlassCard(Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.qibla_bearing, fmt.number(qibla.roundToInt())), color = g.content)

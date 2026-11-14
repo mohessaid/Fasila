@@ -113,7 +113,7 @@ private fun ItemRow(
                     fontSize = 17.sp, fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    "${stringResource(kindRes(item.kind))} · ${describeAnchor(item.startKey, item.startOffset, l)} · ${recurrenceLabel(item, fmt)}",
+                    "${stringResource(kindRes(item.kind))}, ${describeAnchor(item.startKey, item.startOffset, l)}\n${recurrenceLabel(item, fmt)}",
                     color = g.secondary, fontSize = 13.sp,
                 )
                 if (next != null) {
