@@ -44,7 +44,7 @@
   .wrap { display: grid; place-items: center; }
   .qibla { width: min(520px, 100%); display: grid; justify-items: center; gap: 8px; text-align: center; }
   .rose { width: min(360px, 80vw); }
-  .ring { fill: var(--glass); stroke: var(--glass-border); stroke-width: 1.5; }
+  .ring { fill: none; stroke: var(--hairline); stroke-width: 1; }
   .tick { stroke: var(--ink-3); stroke-width: 1.2; }
   .tick.major { stroke: var(--ink); stroke-width: 2; }
   .card-lbl { fill: var(--ink-2); font-size: 14px; font-weight: 600; }

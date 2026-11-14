@@ -2,13 +2,13 @@
   import { api } from "./api";
   import { app } from "./state.svelte";
   import Composer from "./Composer.svelte";
+  import DayStrip from "./DayStrip.svelte";
   import Icon from "./Icon.svelte";
-  import type { Item, Slot } from "./types";
+  import type { Item, Occurrence } from "./types";
 
   let editing = $state<Item | null>(null);
+  let draft = $state<Occurrence | null>(null);
   let descs = $state<Record<string, string>>({});
-  let slots = $state<Slot[]>([]);
-  let slotDescs = $state<string[]>([]);
 
   $effect(() => {
     const items = app.items;
@@ -23,15 +23,6 @@
     ).then((pairs) => (descs = Object.fromEntries(pairs)));
   });
 
-  $effect(() => {
-    const today = app.today;
-    const lang = app.lang;
-    api.freeSlots(today, 60).then(async (s) => {
-      slots = s;
-      slotDescs = await Promise.all(s.map((x) => api.describe(x.anchor, lang)));
-    });
-  });
-
   function recLabel(i: Item) {
     const r = i.recurrence;
     switch (r.type) {
@@ -44,78 +35,73 @@
     }
   }
   const occById = $derived(Object.fromEntries(app.todayOcc.map((o) => [o.item_id, o])));
+  // Items in the order they happen today; items not happening today go last.
+  const ordered = $derived(
+    [...app.items].sort((a, b) => (occById[a.id]?.start ?? Infinity) - (occById[b.id]?.start ?? Infinity)),
+  );
 </script>
 
-<div class="layout">
-  <div class="main">
-    <Composer {editing} onDone={() => (editing = null)} />
+<div class="page">
+  <section class="glass panel">
+    <Composer {editing} bind:preview={draft} onDone={() => (editing = null)} />
+    {#if app.todayDay}
+      <div class="label strip-label">{app.t.freeSlots}</div>
+      <DayStrip day={app.todayDay} items={app.todayOcc} {draft} />
+    {/if}
+  </section>
 
-    <section class="glass card">
-      <h2>{app.t.items}</h2>
-      {#if app.items.length === 0}
-        <p class="muted">{app.t.emptyItems}</p>
-      {:else}
-        <ul class="items">
-          {#each app.items as item (item.id)}
-            {@const occ = occById[item.id]}
-            <li class:off={!item.enabled} class:editing={editing?.id === item.id}>
-              <span class="kind"><Icon name={item.kind} size={16} /></span>
-              <button class="body" onclick={() => (editing = item)} title={app.t.edit}>
-                <span class="title">{item.title}</span>
-                <span class="muted small">{app.fmt.digits(descs[item.id] ?? "")}</span>
-                <span class="faint small">{recLabel(item)}</span>
-              </button>
-              <span class="when tabular">
-                {#if occ}{app.fmt.time(occ.start)}{/if}
-                {#if occ?.conflicts.length}<span class="badge"><Icon name="warn" size={11} /> {app.t.conflict}</span>{/if}
-              </span>
-              <label class="switch" title={item.enabled ? "On" : "Off"}>
-                <input type="checkbox" checked={item.enabled} onchange={(e) => app.upsertItem({ ...item, enabled: e.currentTarget.checked })} />
-                <span></span>
-              </label>
-              <button class="icon-btn" onclick={() => app.removeItem(item.id)} aria-label={app.t.delete}><Icon name="trash" size={16} /></button>
-            </li>
-          {/each}
-        </ul>
-      {/if}
-    </section>
-  </div>
-
-  <aside class="glass card">
-    <h2>{app.t.freeSlots}</h2>
-    <ul class="slots">
-      {#each slots as s, i}
-        <li>
-          <span class="tabular">{app.fmt.time(s.start)}</span>
-          <span class="muted small">{app.fmt.digits(slotDescs[i] ?? "")}</span>
-        </li>
-      {/each}
-    </ul>
-    <p class="faint small">{app.t.protect}: {app.fmt.num(app.config?.guard.before_minutes ?? 5)} / {app.fmt.num(app.config?.guard.after_minutes ?? 20)} {app.t.minutes}</p>
-  </aside>
+  <section class="glass panel">
+    <div class="label">{app.t.items}</div>
+    {#if app.items.length === 0}
+      <p class="empty">{app.t.emptyItems}</p>
+    {:else}
+      <ul class="items">
+        {#each ordered as item (item.id)}
+          {@const occ = occById[item.id]}
+          <li class:off={!item.enabled} class:editing={editing?.id === item.id}>
+            <span class="when tabular">{occ ? app.fmt.time(occ.start) : "—"}</span>
+            <button class="body" onclick={() => (editing = item)} title={app.t.edit}>
+              <span class="title"><Icon name={item.kind} size={14} /> {item.title}</span>
+              <span class="meta">{app.fmt.digits(descs[item.id] ?? "")} · {recLabel(item)}</span>
+              {#if occ?.conflicts.length}
+                <span class="clash">{app.t.conflict} {occ.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}</span>
+              {/if}
+            </button>
+            <label class="switch" title={item.enabled ? "On" : "Off"}>
+              <input type="checkbox" checked={item.enabled} onchange={(e) => app.upsertItem({ ...item, enabled: e.currentTarget.checked })} />
+              <span></span>
+            </label>
+            <button class="del" onclick={() => app.removeItem(item.id)} aria-label={app.t.delete}><Icon name="trash" size={15} /></button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
 </div>
 
 <style>
-  .layout { display: grid; grid-template-columns: 1fr 280px; gap: 14px; align-items: start; }
-  .main { display: grid; gap: 14px; }
-  .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .items li { display: grid; grid-template-columns: auto 1fr auto auto auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--glass); border: 1px solid transparent; }
-  .items li.editing { border-color: var(--accent); }
-  .items li.off { opacity: 0.5; }
-  .body { display: grid; gap: 2px; text-align: start; background: none; border: 0; padding: 0; }
-  .title { font-weight: 600; }
-  .small { font-size: 12.5px; }
-  .kind { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--glass-strong); }
-  .when { display: grid; justify-items: end; gap: 4px; font-size: 15px; }
-  .icon-btn { background: none; border: 0; color: var(--ink-2); padding: 6px; border-radius: 10px; }
-  .icon-btn:hover { background: var(--glass-strong); color: var(--ink); }
-  .switch { position: relative; width: 38px; height: 22px; }
+  .page { display: grid; gap: 18px; max-width: 900px; margin: 0 auto; padding: 8px 4px 20px; }
+  .panel { padding: 26px 30px; }
+  .strip-label { margin-top: 26px; margin-bottom: 0; }
+  .empty { margin: 0; color: var(--ink-2); }
+  .items { list-style: none; margin: 0; padding: 0; }
+  .items li { display: grid; grid-template-columns: 56px 1fr auto auto; gap: 16px; align-items: center; padding: 14px 0; }
+  .items li + li { border-top: 1px solid var(--hairline); }
+  .items li.off { opacity: 0.45; }
+  .items li.editing .title { color: var(--accent); }
+  .when { color: var(--ink-2); font-size: 15px; }
+  .body { display: grid; gap: 3px; text-align: start; background: none; border: 0; padding: 0; }
+  .title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .title :global(svg) { color: var(--ink-3); }
+  .meta { font-size: 13px; color: var(--ink-3); }
+  .clash { font-size: 12.5px; color: var(--warn); }
+  .del { background: none; border: 0; color: var(--ink-3); padding: 6px; border-radius: 8px; opacity: 0; transition: opacity 0.15s, color 0.15s; }
+  .items li:hover .del, .del:focus-visible { opacity: 1; }
+  .del:hover { color: var(--danger); }
+  .switch { position: relative; width: 34px; height: 20px; }
   .switch input { opacity: 0; position: absolute; inset: 0; margin: 0; cursor: pointer; }
-  .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-border); pointer-events: none; transition: background 0.2s; }
-  .switch span::after { content: ""; position: absolute; top: 2px; inset-inline-start: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: inset-inline-start 0.2s; }
+  .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--glass-hover); pointer-events: none; transition: background 0.2s; }
+  .switch span::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink-2); transition: inset-inline-start 0.2s, background 0.2s; }
   .switch input:checked + span { background: var(--accent); }
-  .switch input:checked + span::after { inset-inline-start: 18px; background: var(--accent-ink); }
-  .slots { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
-  .slots li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--glass); }
-  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+  .switch input:checked + span::after { inset-inline-start: 17px; background: var(--accent-ink); }
 </style>

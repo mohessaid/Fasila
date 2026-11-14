@@ -207,12 +207,13 @@
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-  .results button { width: 100%; text-align: start; padding: 8px 12px; border-radius: 12px; background: var(--glass); border: 1px solid var(--glass-border); }
+  .results button { width: 100%; text-align: start; padding: 8px 12px; border-radius: 12px; background: var(--glass-strong); border: 0; }
   .adj { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; color: var(--ink); }
   .adj-row { display: grid; grid-template-columns: 1fr auto 3ch auto; gap: 6px; align-items: center; }
   .val { text-align: center; }
-  .step { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass); }
-  .seg { display: flex; border: 1px solid var(--glass-border); border-radius: 999px; overflow: hidden; width: max-content; }
+  .step { width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--glass-strong); }
+  .seg { display: flex; background: var(--glass-strong); border-radius: 999px; overflow: hidden; width: max-content; padding: 2px; }
+  .seg button { border-radius: 999px; }
   .seg button { background: transparent; border: 0; padding: 8px 14px; color: var(--ink); }
   .seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
   .toggles { display: grid; gap: 8px; }

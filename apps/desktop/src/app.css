@@ -24,6 +24,8 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-hi: rgba(255, 255, 255, 0.16);
   --glass-tint: rgba(6, 10, 20, 0.34);
+  --veil: linear-gradient(180deg, rgba(6, 10, 20, 0.30), rgba(6, 10, 20, 0.42));
+  --hairline: rgba(255, 255, 255, 0.09);
   --shadow: 0 10px 24px rgba(2, 6, 23, 0.18);
   --radius: 24px;
   --radius-sm: 16px;
@@ -60,23 +62,35 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
 
+/* A surface is used sparingly: only where content needs a quiet backdrop (forms,
+   dense lists). No outlines — depth comes from a soft veil of the sky behind it. */
 .glass {
   position: relative;
-  background: linear-gradient(var(--glass), var(--glass)), var(--glass-tint);
-  border: 0.5px solid var(--glass-border);
+  background: var(--veil);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   backdrop-filter: blur(var(--blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
 }
-.glass::before {
-  content: ""; position: absolute; top: 0; inset-inline: 18px; height: 1px;
-  background: var(--glass-hi); pointer-events: none;
-}
 
-.card { padding: 22px; }
-.card h2 { margin: 0 0 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
-:root[lang="ar"] .card h2 { letter-spacing: 0; text-transform: none; font-size: 14px; }
+.card { padding: 24px; }
+/* Section labels: small, tracked, quiet. */
+.card h2, .label {
+  margin: 0 0 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+:root[lang="ar"] .label { letter-spacing: 0; text-transform: none; font-size: 13px; }
+/* Hairline used instead of boxes to separate rows. */
+.rule { height: 1px; background: linear-gradient(90deg, transparent, var(--hairline) 12%, var(--hairline) 88%, transparent); border: 0; margin: 0; }
+/* Editable word inside a sentence: an underlined token, not a box. */
+.token {
+  color: var(--ink); font-weight: 600; background: none; border: 0; padding: 0 1px;
+  text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  text-decoration-thickness: 1.5px; text-underline-offset: 6px; cursor: pointer;
+  appearance: none; -webkit-appearance: none; font-size: inherit;
+}
+.token:hover { color: var(--accent); }
+select.token option { color: #111; background: #fff; }
+:root[lang="ar"] .card h2 { letter-spacing: 0; text-transform: none; font-size: 13px; }
 
 .muted { color: var(--ink-2); }
 .faint { color: var(--ink-3); }
@@ -84,8 +98,8 @@ button { cursor: pointer; }
 
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 999px;
-  background: var(--glass); border: 1px solid var(--glass-border);
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--glass-strong); border: 0;
   font-size: 14px; white-space: nowrap;
 }
 .chip select, .chip input {
@@ -96,9 +110,10 @@ button { cursor: pointer; }
 .chip select option { color: #111; background: #fff; }
 
 .btn {
-  border: 1px solid var(--glass-border); background: var(--glass-strong);
+  border: 0; background: var(--glass-strong);
   border-radius: 999px; padding: 9px 18px; font-weight: 600; font-size: 14px;
-  transition: transform 0.12s ease, background 0.2s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: transform 0.12s ease, background 0.2s ease, color 0.2s ease;
 }
 .btn:hover { background: var(--glass-hover); }
 .btn:active { transform: scale(0.97); }
@@ -108,9 +123,12 @@ button { cursor: pointer; }
 
 .field { display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
 .input {
-  width: 100%; padding: 10px 14px; border-radius: 14px;
-  background: var(--glass); border: 1px solid var(--glass-border); color: var(--ink); font-size: 15px;
+  width: 100%; padding: 10px 14px; border-radius: 12px;
+  background: var(--glass-strong); border: 0; color: var(--ink); font-size: 15px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
+.input:hover { background: var(--glass-hover); }
+.input:focus { outline: none; box-shadow: 0 0 0 1.5px var(--accent); }
 .input::placeholder { color: var(--ink-3); }
 select.input option { color: #111; background: #fff; }
 

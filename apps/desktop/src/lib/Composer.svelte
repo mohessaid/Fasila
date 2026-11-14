@@ -3,9 +3,14 @@
   import { app } from "./state.svelte";
   import { addDays } from "./format";
   import Icon from "./Icon.svelte";
+  import Token from "./Token.svelte";
   import { ANCHOR_KEYS, type Item, type Occurrence, type Slot, type TimeKey } from "./types";
 
-  let { editing = null, onDone }: { editing?: Item | null; onDone?: () => void } = $props();
+  let {
+    editing = null,
+    onDone,
+    preview = $bindable(null),
+  }: { editing?: Item | null; onDone?: () => void; preview?: Occurrence | null } = $props();
 
   const blank = (): Item => ({
     id: "", title: "", kind: "alarm", start: { key: "fajr", offset_minutes: -15 }, end: { type: "none" },
@@ -15,7 +20,6 @@
   let text = $state("");
   let draft = $state<Item>(blank());
   let parseError = $state<string | null>(null);
-  let preview = $state<Occurrence | null>(null);
   let suggestion = $state<Slot | null>(null);
   let description = $state("");
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -49,6 +53,8 @@
       }
     }, 160);
   }
+
+  const keyOptions = $derived(ANCHOR_KEYS.map((k) => ({ value: k, label: app.t.keys[k] })));
 
   // --- chips helpers ---------------------------------------------------------
   let direction = $derived(draft.start.offset_minutes < 0 ? "before" : draft.start.offset_minutes > 0 ? "after" : "at");
@@ -139,11 +145,10 @@
   }
 </script>
 
-<section class="glass card composer">
-  <label class="nl">
+<section class="composer">
+  <label class="line">
     <Icon name="sparkle" />
     <input
-      class="input"
       bind:value={text}
       oninput={onText}
       onkeydown={(e) => e.key === "Enter" && !parseError && save()}
@@ -154,117 +159,123 @@
   </label>
   <p id="composer-hint" class="hint" class:err={parseError}>{parseError ?? app.t.composerHint}</p>
 
-  <div class="chips">
-    <label class="chip title"><span class="faint">{app.t.titleLabel}</span><input bind:value={draft.title} dir="auto" placeholder={app.t[draft.kind]} /></label>
-    <label class="chip">
-      <Icon name={draft.kind} size={14} />
-      <select bind:value={draft.kind} aria-label={app.t.kind}>
-        <option value="alarm">{app.t.alarm}</option><option value="task">{app.t.task}</option><option value="event">{app.t.event}</option>
-      </select>
-    </label>
-  </div>
-
-  <div class="chips sentence">
-    {#if direction !== "at"}
-      <label class="chip"><input type="number" min="0" max="720" value={amount} oninput={(e) => setAmount(+e.currentTarget.value)} aria-label={app.t.minutes} /> {app.t.minutes}</label>
-    {/if}
-    <label class="chip">
-      <select value={direction} onchange={(e) => setDirection(e.currentTarget.value)}>
-        <option value="before">{app.t.before}</option><option value="at">{app.t.atPrayer}</option><option value="after">{app.t.after}</option>
-      </select>
-    </label>
-    <label class="chip strong">
-      <select bind:value={draft.start.key}>
-        {#each ANCHOR_KEYS as k}<option value={k}>{app.t.keys[k]}</option>{/each}
-      </select>
-    </label>
-    <span class="dot">·</span>
-    <label class="chip">
-      <select value={endType} onchange={(e) => setEnd(e.currentTarget.value)} aria-label={app.t.end}>
-        <option value="none">{app.t.endNone}</option><option value="duration">{app.t.endDuration}</option><option value="until">{app.t.endUntil}</option>
-      </select>
-    </label>
+  <!-- The item as one sentence of editable words. -->
+  <p class="sentence">
+    <Token label={app.t.kind} value={draft.kind} onchange={(v) => (draft.kind = v as Item["kind"])}
+      options={[{ value: "alarm", label: app.t.alarm }, { value: "task", label: app.t.task }, { value: "event", label: app.t.event }]} />
+    <input class="token title" bind:value={draft.title} placeholder={app.t.titleLabel} dir="auto"
+      style:width="{Math.max(6, (draft.title || app.t.titleLabel).length + 1)}ch" aria-label={app.t.titleLabel} />
+    <span class="sep">·</span>
+    {#snippet amountTok()}
+      {#if direction !== "at"}
+        <span class="nowrap"><input class="token num" type="number" min="0" max="720" value={amount}
+          oninput={(e) => setAmount(+e.currentTarget.value)} aria-label={app.t.minutes} /> {app.t.minutes}</span>
+      {/if}
+    {/snippet}
+    {#snippet dirTok()}
+      <Token value={direction} onchange={setDirection}
+        options={[{ value: "before", label: app.t.before }, { value: "at", label: app.t.atPrayer }, { value: "after", label: app.t.after }]} />
+    {/snippet}
+    {#snippet keyTok()}
+      <Token tone="strong" value={draft.start.key} onchange={(v) => (draft.start.key = v as TimeKey)} options={keyOptions} />
+    {/snippet}
+    {#if app.lang === "ar"}{@render dirTok()} {@render keyTok()} {@render amountTok()}
+    {:else}{@render amountTok()} {@render dirTok()} {@render keyTok()}{/if}
+    <span class="sep">·</span>
+    <Token label={app.t.end} value={endType} onchange={setEnd}
+      options={[{ value: "none", label: app.t.endNone }, { value: "duration", label: app.t.endDuration }, { value: "until", label: app.t.endUntil }]} />
     {#if draft.end.type === "duration"}
-      <label class="chip"><input type="number" min="5" max="720" step="5" bind:value={draft.end.minutes} /> {app.t.minutes}</label>
+      <span class="nowrap"><input class="token num" type="number" min="5" max="720" step="5" bind:value={draft.end.minutes} /> {app.t.minutes}</span>
     {:else if draft.end.type === "until"}
       {@const u = draft.end.anchor}
-      <label class="chip"><input type="number" min="0" max="720" value={Math.abs(u.offset_minutes)}
-        oninput={(e) => (u.offset_minutes = (u.offset_minutes <= 0 ? -1 : 1) * Math.abs(+e.currentTarget.value))} /> {app.t.minutes}</label>
-      <label class="chip"><select value={u.offset_minutes <= 0 ? "before" : "after"} onchange={(e) => (u.offset_minutes = (e.currentTarget.value === "before" ? -1 : 1) * Math.abs(u.offset_minutes))}>
-        <option value="before">{app.t.before}</option><option value="after">{app.t.after}</option></select></label>
-      <label class="chip strong"><select bind:value={u.key}>{#each ANCHOR_KEYS as k}<option value={k}>{app.t.keys[k] as string}</option>{/each}</select></label>
+      {@const uDir = u.offset_minutes < 0 ? "before" : u.offset_minutes > 0 ? "after" : "at"}
+      {#if uDir !== "at"}
+        <span class="nowrap"><input class="token num" type="number" min="1" max="720" value={Math.abs(u.offset_minutes)}
+          oninput={(e) => (u.offset_minutes = (u.offset_minutes < 0 ? -1 : 1) * Math.max(1, Math.abs(+e.currentTarget.value)))} /> {app.t.minutes}</span>
+      {/if}
+      <Token value={uDir}
+        onchange={(v) => (u.offset_minutes = v === "at" ? 0 : (v === "before" ? -1 : 1) * (Math.abs(u.offset_minutes) || 10))}
+        options={[{ value: "before", label: app.t.before }, { value: "at", label: app.t.atPrayer }, { value: "after", label: app.t.after }]} />
+      <Token tone="strong" value={u.key} onchange={(v) => (u.key = v as TimeKey)} options={keyOptions} />
     {/if}
-    <span class="dot">·</span>
-    <label class="chip">
-      <select value={recValue} onchange={(e) => setRec(e.currentTarget.value)} aria-label={app.t.repeat}>
-        <option value="daily">{app.t.daily}</option>
-        <option value="today">{app.t.once} · {app.t.today}</option>
-        <option value="tomorrow">{app.t.once} · +1</option>
-        <option value="weekly">{app.t.weekly}</option>
-        <option value="ramadan">{app.t.ramadan}</option>
-        <option value="white">{app.t.whiteDays}</option>
-      </select>
-    </label>
-    <label class="chip">
-      <Icon name="bell" size={14} />
-      <select value={String(draft.remind_before_minutes ?? 0)} onchange={(e) => (draft.remind_before_minutes = +e.currentTarget.value || null)} aria-label={app.t.remind}>
-        <option value="0">{app.t.none}</option>
-        {#each [5, 10, 15, 30, 60] as m}<option value={String(m)}>{app.t.remind} {app.fmt.num(m)} {app.t.minutes}</option>{/each}
-      </select>
-    </label>
-  </div>
+    <span class="sep">·</span>
+    <Token label={app.t.repeat} value={recValue} onchange={setRec}
+      options={[
+        { value: "daily", label: app.t.daily },
+        { value: "today", label: `${app.t.once} · ${app.t.today}` },
+        { value: "tomorrow", label: `${app.t.once} · +1` },
+        { value: "weekly", label: app.t.weekly },
+        { value: "ramadan", label: app.t.ramadan },
+        { value: "white", label: app.t.whiteDays },
+      ]} />
+    <span class="sep">·</span>
+    <Token tone="quiet" label={app.t.remind} value={String(draft.remind_before_minutes ?? 0)}
+      onchange={(v) => (draft.remind_before_minutes = +v || null)}
+      options={[{ value: "0", label: `${app.t.remind}: ${app.t.none}` },
+        ...[5, 10, 15, 30, 60].map((m) => ({ value: String(m), label: `${app.t.remind} ${app.fmt.num(m)} ${app.t.minutes}` }))]} />
+  </p>
 
   {#if draft.recurrence.type === "weekly"}
     {@const mask = draft.recurrence.days}
     <div class="days" role="group" aria-label={app.t.weekly}>
       {#each app.t.weekdaysShort as d, i}
-        <button class="chip" class:on={(mask >> i) & 1} aria-pressed={!!((mask >> i) & 1)} onclick={() => toggleDay(i)}>{d}</button>
+        <button class:on={(mask >> i) & 1} aria-pressed={!!((mask >> i) & 1)} onclick={() => toggleDay(i)}>{d}</button>
       {/each}
     </div>
   {/if}
 
-  <div class="preview">
-    <div>
-      <div class="desc">{app.fmt.digits(description)}</div>
+  <footer class="result">
+    <div class="read">
+      <strong>{app.fmt.digits(description)}</strong>
       {#if preview}
-        <div class="muted tabular">{app.t.previewToday} {app.fmt.time(preview.start)}{#if preview.end} – {app.fmt.time(preview.end)}{/if}</div>
+        <span class="muted tabular">{app.t.previewToday} {app.fmt.time(preview.start)}{#if preview.end} – {app.fmt.time(preview.end)}{/if}</span>
+      {/if}
+      {#if preview?.conflicts.length}
+        <span class="clash" role="alert">
+          <Icon name="warn" size={14} />
+          {app.t.conflictLong} {preview.conflicts.map((c) => app.t.keys[c.prayer]).join(" · ")}.
+          {#if suggestion}
+            {#await api.describe(suggestion.anchor, app.lang) then s}
+              <button class="link" onclick={applySuggestion}>{app.t.suggest} {app.fmt.digits(s)} ({app.fmt.time(suggestion.start)})</button>
+            {/await}
+          {/if}
+        </span>
       {/if}
     </div>
     <div class="actions">
       {#if editing}<button class="btn ghost" onclick={cancel}>{app.t.cancel}</button>{/if}
       <button class="btn primary" onclick={save}><Icon name={editing ? "task" : "plus"} size={16} /> {editing ? app.t.save : app.t.add}</button>
     </div>
-  </div>
-
-  {#if preview?.conflicts.length}
-    <div class="warn conflict" role="alert">
-      <Icon name="warn" size={16} />
-      <span>{app.t.conflictLong} {preview.conflicts.map((c) => app.t.keys[c.prayer]).join(" · ")}.</span>
-      {#if suggestion}
-        {#await api.describe(suggestion.anchor, app.lang) then s}
-          <button class="btn" onclick={applySuggestion}>{app.t.suggest}: {app.fmt.digits(s)} ({app.fmt.time(suggestion.start)})</button>
-        {/await}
-      {/if}
-    </div>
-  {/if}
+  </footer>
 </section>
 
 <style>
-  .composer { display: grid; gap: 12px; }
-  .nl { display: flex; align-items: center; gap: 10px; }
-  .nl .input { font-size: 17px; padding: 14px 18px; border-radius: 18px; }
-  .hint { margin: -4px 4px 0; font-size: 12.5px; color: var(--ink-3); }
+  .composer { display: grid; gap: 10px; }
+  .line {
+    display: flex; align-items: center; gap: 12px; padding: 4px 2px 12px;
+    border-bottom: 1px solid var(--hairline); color: var(--ink-3); transition: border-color 0.2s, color 0.2s;
+  }
+  .line:focus-within { border-color: var(--accent); color: var(--accent); }
+  .line input { flex: 1; background: none; border: 0; outline: none; color: var(--ink); font-size: 22px; font-weight: 400; letter-spacing: -0.01em; padding: 4px 0; }
+  .line input::placeholder { color: var(--ink-3); }
+  .hint { margin: 0; font-size: 12.5px; color: var(--ink-3); }
   .hint.err { color: var(--warn); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .chip.title { flex: 1 1 220px; }
-  .chip.title input { flex: 1; min-width: 0; }
-  .chip.strong { background: var(--glass-strong); font-weight: 600; }
-  .dot { color: var(--ink-3); }
-  .days { display: flex; gap: 6px; flex-wrap: wrap; }
-  .days .chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-  .preview { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid var(--glass-border); }
-  .desc { font-weight: 600; font-size: 16px; }
+  .sentence { margin: 10px 0 0; font-size: 17px; line-height: 2.1; color: var(--ink-2); }
+  .sentence .title { min-width: 6ch; max-width: 26ch; }
+  .sentence .title::placeholder { color: var(--ink-3); font-weight: 500; }
+  .sentence .num { width: 3.2ch; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .sentence .num::-webkit-inner-spin-button { display: none; }
+  .sentence .token:focus { outline: none; color: var(--accent); }
+  .sep { color: var(--ink-3); margin: 0 6px; }
+  .nowrap { white-space: nowrap; }
+  .days { display: flex; gap: 4px; flex-wrap: wrap; }
+  .days button { background: none; border: 0; color: var(--ink-3); padding: 6px 10px; border-radius: 999px; font-size: 13.5px; }
+  .days button:hover { color: var(--ink); }
+  .days button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .result { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+  .read { display: grid; gap: 4px; font-size: 14.5px; }
+  .read strong { font-size: 16px; font-weight: 600; color: var(--ink); }
+  .clash { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--warn); font-size: 13.5px; }
+  .link { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
   .actions { display: flex; gap: 8px; }
-  .actions .btn { display: inline-flex; gap: 6px; align-items: center; }
-  .conflict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 </style>

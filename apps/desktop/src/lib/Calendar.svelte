@@ -82,7 +82,7 @@
     <aside class="glass card side">
       <h2>{app.fmt.longDate(sel.date)}</h2>
       <div class="hijri">{app.fmt.num(sel.hijri.day)} {app.t.hijriMonths[sel.hijri.month - 1]} {app.fmt.num(sel.hijri.year)}</div>
-      {#each sel.occasions as o}<div class="chip occ"><Icon name="sparkle" size={14} /> {app.t.occ[o]}</div>{/each}
+      {#each sel.occasions as o}<div class="occ">{app.t.occ[o]}</div>{/each}
       <dl class="times">
         {#each keys as k}
           <dt class="muted">{app.keyName(k, sel)}</dt><dd class="tabular">{app.fmt.time(sel.times[k])}</dd>
@@ -100,35 +100,39 @@
 </div>
 
 <style>
-  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
+  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; max-width: 1180px; margin: 0 auto; padding: 8px 4px 20px; }
   .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .title { text-align: center; }
   .g { font-size: 22px; font-weight: 600; }
-  .nav-btn { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 999px; width: 38px; height: 38px; display: grid; place-items: center; }
+  .nav-btn { background: none; border: 0; color: var(--ink-2); border-radius: 999px; width: 38px; height: 38px; display: grid; place-items: center; }
+  .nav-btn:hover { background: var(--glass-strong); color: var(--ink); }
   .nav-btn:first-child :global(svg) { transform: scaleX(-1); }
   :global([dir="rtl"]) .nav-btn:first-child :global(svg) { transform: none; }
   :global([dir="rtl"]) .nav-btn:last-child :global(svg) { transform: scaleX(-1); }
   .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .wd { text-align: center; font-size: 12px; padding-bottom: 4px; }
   .cell {
-    position: relative; aspect-ratio: 1.1; border-radius: 14px; border: 1px solid transparent;
-    background: var(--glass); display: grid; align-content: center; justify-items: center; gap: 2px; padding: 4px;
+    position: relative; aspect-ratio: 1.15; border-radius: 16px; border: 0; background: none;
+    display: grid; align-content: center; justify-items: center; gap: 3px; padding: 4px;
+    transition: background 0.15s;
   }
   .cell:hover { background: var(--glass-strong); }
-  .cell.fri { box-shadow: inset 0 -2px 0 var(--glass-border); }
-  .cell.today { border-color: var(--accent); }
-  .cell.sel { background: var(--glass-strong); border-color: var(--ink-2); }
-  .gd { font-size: 17px; font-weight: 600; }
-  .hd { font-size: 11px; color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cell.fri .gd { color: var(--accent); }
+  .cell.today .gd { box-shadow: 0 0 0 1.5px var(--accent); }
+  .cell.sel { background: var(--ink); }
+  .cell.sel .gd, .cell.sel .hd { color: var(--accent-ink); }
+  .gd { font-size: 16px; font-weight: 500; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; }
+  .hd { font-size: 11px; color: var(--ink-3); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cell.hstart .hd { color: var(--accent); font-weight: 600; }
-  .occ-dot { position: absolute; top: 7px; inset-inline-end: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .occ-dot { position: absolute; bottom: 6px; inset-inline-start: 50%; translate: -50% 0; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
   .side { display: grid; gap: 10px; }
   .side h2 { margin-bottom: 0; }
   .hijri { font-size: 18px; font-weight: 600; }
-  .occ { justify-self: start; }
-  .times { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; margin: 6px 0 0; }
+  .occ { color: var(--accent); font-size: 13px; font-weight: 500; }
+  .times { display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; margin: 6px 0 0; font-size: 14.5px; }
+  .times dt { color: var(--ink-2); }
   .times dd { margin: 0; font-weight: 500; }
-  .occ-list { list-style: none; padding: 10px 0 0; margin: 0; border-top: 1px solid var(--glass-border); display: grid; gap: 8px; }
+  .occ-list { list-style: none; padding: 12px 0 0; margin: 0; border-top: 1px solid var(--hairline); display: grid; gap: 8px; }
   .occ-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 </style>

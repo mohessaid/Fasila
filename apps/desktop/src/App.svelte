@@ -49,7 +49,7 @@
     <Onboarding />
   {:else}
     <div class="shell">
-      <nav class="glass nav" aria-label={app.t.appName}>
+      <nav class="nav" aria-label={app.t.appName}>
         <div class="brand">
           <span class="logo" aria-hidden="true"></span>
           <span>{app.t.appName}</span>
@@ -64,7 +64,7 @@
               onclick={() => (app.tab = tab.id)}
             >
               <Icon name={tab.icon} />
-              <span class="label">{app.t[tab.id]}</span>
+              <span class="tab-text">{app.t[tab.id]}</span>
             </button>
           {/each}
         </div>
@@ -94,38 +94,41 @@
 {/if}
 
 <style>
-  .shell { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 14px; padding: 14px; }
-  .nav {
-    display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 18px;
-    border-radius: 999px; padding-inline: 18px 10px;
-  }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: 0.01em; }
+  .shell { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 8px; padding: 12px 20px 16px; }
+  .nav { display: flex; align-items: center; gap: 12px; padding: 6px 10px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
   .logo {
-    width: 22px; height: 22px; border-radius: 50%;
-    border: 3px solid var(--ink-3); border-top-color: var(--accent); border-inline-end-color: var(--accent);
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2.5px solid var(--ink-3); border-top-color: var(--accent); border-inline-end-color: var(--accent);
     transform: rotate(-20deg);
   }
-  .tabs { display: flex; gap: 4px; margin-inline: auto; }
+  .tabs { display: flex; gap: 2px; margin-inline: auto; }
   .tabs button {
-    display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
-    background: transparent; border: 1px solid transparent; color: var(--ink-2); font-weight: 500;
-    transition: background 0.2s, color 0.2s;
+    position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: transparent; border: 0; color: var(--ink-3); font-weight: 500; font-size: 14.5px;
+    transition: color 0.2s;
   }
-  .tabs button:hover { color: var(--ink); background: var(--glass); }
-  .tabs button.active { color: var(--ink); background: var(--glass-strong); border-color: var(--glass-border); }
-  .place { display: flex; align-items: center; gap: 6px; font-size: 13px; padding-inline-end: 8px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tabs button :global(svg) { opacity: 0.8; }
+  .tabs button:hover { color: var(--ink-2); }
+  .tabs button.active { color: var(--ink); }
+  .tabs button.active::after {
+    content: ""; position: absolute; bottom: 2px; inset-inline-start: 50%; translate: -50% 0;
+    width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+  }
+  :global([dir="rtl"]) .tabs button.active::after { translate: 50% 0; }
+  .place { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   main { overflow: auto; min-height: 0; border-radius: var(--radius); }
   .page { animation: rise 0.35s ease both; }
   :global(:root[data-motion="reduce"]) .page { animation: none; }
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .toast { position: fixed; inset-block-end: 22px; inset-inline-start: 50%; translate: -50% 0; padding: 10px 20px; border-radius: 999px; font-size: 14px; z-index: 10; }
+  .toast { position: fixed; background: var(--veil); inset-block-end: 22px; inset-inline-start: 50%; translate: -50% 0; padding: 10px 20px; border-radius: 999px; font-size: 14px; z-index: 10; }
   :global([dir="rtl"]) .toast { translate: 50% 0; }
 
   @media (max-width: 820px) {
     .shell { grid-template-rows: 1fr auto; padding: 10px; }
-    .nav { order: 2; padding: 6px; border-radius: 26px; }
+    .nav { order: 2; padding: 4px; border-radius: 22px; background: var(--veil); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); }
     .brand, .place { display: none; }
     .tabs { margin: 0; width: 100%; justify-content: space-around; }
-    .tabs button { flex-direction: column; gap: 2px; padding: 8px 10px; font-size: 11px; border-radius: 20px; }
+    .tabs button { flex-direction: column; gap: 3px; padding: 8px 10px 10px; font-size: 11px; }
   }
 </style>

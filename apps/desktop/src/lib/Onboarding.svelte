@@ -73,7 +73,7 @@
   .langs .on { background: var(--accent); color: var(--accent-ink); }
   .results { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
   .results button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; text-align: start; padding: 10px 14px; border-radius: 14px; background: var(--glass); border: 1px solid transparent; }
-  .results button:hover { border-color: var(--glass-border); background: var(--glass-strong); }
+  .results button:hover { background: var(--glass-hover); }
   .manual { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: start; }
   .row { display: flex; gap: 8px; justify-content: center; }
 </style>

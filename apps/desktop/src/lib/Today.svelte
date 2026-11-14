@@ -15,29 +15,27 @@
 </script>
 
 {#if day}
-  <div class="grid">
-    <section class="glass card hero">
+  <div class="today">
+    <section class="stage">
       <header class="date">
-        <div class="hijri">
-          {app.fmt.num(day.hijri.day)} {app.t.hijriMonths[day.hijri.month - 1]} {app.fmt.num(day.hijri.year)}
-          <span class="faint">{app.t.hijriShort}</span>
-        </div>
-        <div class="muted">{app.fmt.longDate(day.date)}</div>
+        <h1>
+          {app.fmt.num(day.hijri.day)} {app.t.hijriMonths[day.hijri.month - 1]}
+          <span class="year">{app.fmt.num(day.hijri.year)}</span>
+        </h1>
+        <p>{app.fmt.longDate(day.date)}</p>
         {#if day.occasions.length}
-          <div class="occ">
-            {#each day.occasions as o}<span class="chip"><Icon name="sparkle" size={14} />{app.t.occ[o] ?? o}</span>{/each}
-          </div>
+          <p class="occ">{day.occasions.map((o) => app.t.occ[o] ?? o).join(" · ")}</p>
         {/if}
       </header>
       <CelestialHero {day} />
       {#if day.times.polar_fallback}
-        <p class="warn"><Icon name="info" size={14} /> {app.t.polar}</p>
+        <p class="note"><Icon name="info" size={14} /> {app.t.polar}</p>
       {/if}
     </section>
 
-    <section class="glass card">
-      <h2>{app.t.today}</h2>
-      <ol class="prayers">
+    <aside class="glass panel">
+      <div class="label">{app.t.today}</div>
+      <ol class="times">
         {#each rows as k}
           {@const at = day.times[k]}
           {@const isNext = app.next?.key === k && app.next.day.date === day.date}
@@ -45,87 +43,97 @@
           <li class:next={isNext} class:cur={isCur} class:minor={k === "sunrise"} class:past={at !== null && at < app.now && !isCur}>
             <span class="name">
               {app.keyName(k, day)}
-              {#if estimated(k)}<span class="badge" title={app.t.estimatedHelp}>{app.t.estimated}</span>{/if}
+              {#if estimated(k)}<abbr class="est" title={app.t.estimatedHelp}>{app.t.estimated}</abbr>{/if}
             </span>
             <span class="time tabular">{app.fmt.time(at)}</span>
             {#if isNext}
-              <span class="in tabular">{app.t.in} {app.fmt.countdown(at! - app.now)}</span>
+              <span class="sub tabular">{app.t.in} {app.fmt.countdown(at! - app.now)}</span>
             {:else if isCur}
-              <span class="in">{app.t.now}</span>
+              <span class="sub">{app.t.now}</span>
             {/if}
           </li>
         {/each}
       </ol>
-      <div class="extras">
+      <dl class="extras">
         {#each extras as k}
-          <div><span class="faint">{app.t.keys[k]}</span><span class="tabular">{app.fmt.time(day.times[k])}</span></div>
+          <div><dt>{app.t.keys[k]}</dt><dd class="tabular">{app.fmt.time(day.times[k])}</dd></div>
         {/each}
-      </div>
-    </section>
+      </dl>
 
-    <section class="glass card plan">
-      <h2>{app.t.todaysPlan}</h2>
+      <hr class="rule" />
+
+      <div class="label plan-label">{app.t.todaysPlan}</div>
       {#if app.todayOcc.length === 0}
-        <p class="muted empty">{app.t.nothingPlanned}</p>
-        <button class="btn" onclick={() => (app.tab = "schedule")}><Icon name="plus" size={16} /> {app.t.add}</button>
+        <p class="empty">{app.t.nothingPlanned}</p>
+        <button class="btn" onclick={() => (app.tab = "schedule")}><Icon name="plus" size={15} /> {app.t.add}</button>
       {:else}
-        <ul class="occ-list">
+        <ul class="plan">
           {#each app.todayOcc as o}
             <li class:done={(o.end ?? o.start) < app.now}>
-              <span class="kind"><Icon name={o.kind} size={16} /></span>
-              <span class="title">{o.title || app.t[o.kind]}</span>
-              <span class="tabular muted">{app.fmt.time(o.start)}{#if o.end}–{app.fmt.time(o.end)}{/if}</span>
-              {#if o.conflicts.length}
-                <span class="badge" title={app.t.conflictLong}>
-                  <Icon name="warn" size={12} /> {o.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}
-                </span>
-              {/if}
+              <span class="when tabular">{app.fmt.time(o.start)}</span>
+              <span class="what">
+                {o.title || app.t[o.kind]}
+                {#if o.end}<span class="until tabular"> – {app.fmt.time(o.end)}</span>{/if}
+                {#if o.conflicts.length}
+                  <span class="clash">{app.t.conflict} {o.conflicts.map((c) => app.t.keys[c.prayer]).join(", ")}</span>
+                {/if}
+              </span>
             </li>
           {/each}
         </ul>
       {/if}
-    </section>
+    </aside>
   </div>
 {/if}
 
 <style>
-  .grid {
-    display: grid; gap: 14px;
-    grid-template-columns: minmax(320px, 1.15fr) minmax(280px, 1fr);
-    grid-template-areas: "hero prayers" "hero plan";
-    align-items: start;
+  .today {
+    display: grid; gap: 28px; align-items: start;
+    grid-template-columns: minmax(340px, 1.3fr) minmax(300px, 1fr);
+    max-width: 1180px; margin: 0 auto; padding: 8px 4px 20px;
   }
-  .hero { grid-area: hero; display: grid; gap: 10px; }
-  .grid > section:nth-child(2) { grid-area: prayers; }
-  .plan { grid-area: plan; }
+  .stage { display: grid; gap: 4px; padding-top: 12px; }
   .date { text-align: center; }
-  .hijri { font-size: 22px; font-weight: 600; }
-  .occ { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
-  .prayers { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-  .prayers li {
-    display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 12px;
-    padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid transparent;
-    transition: background 0.3s;
+  h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+  :global(:root[lang="ar"]) h1 { letter-spacing: 0; }
+  .year { color: var(--ink-3); font-weight: 400; }
+  .date p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+  .date .occ { color: var(--accent); font-size: 13px; font-weight: 500; }
+  .note { display: flex; gap: 8px; align-items: center; justify-content: center; color: var(--warn); font-size: 13px; }
+
+  .panel { padding: 26px 28px; }
+  .times { list-style: none; margin: 0; padding: 0; }
+  .times li {
+    position: relative; display: grid; grid-template-columns: 1fr auto; align-items: baseline;
+    padding: 11px 0; column-gap: 12px;
   }
-  .prayers li .name { font-size: 17px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-  .prayers li .time { font-size: 19px; font-weight: 500; }
-  .prayers li .in { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-2); }
-  .prayers li.minor .name, .prayers li.minor .time { font-size: 14px; color: var(--ink-2); }
-  .prayers li.past:not(.minor) { opacity: 0.6; }
-  .prayers li.next { background: var(--glass-strong); border-color: var(--glass-border); box-shadow: inset 3px 0 0 var(--accent); }
-  :global([dir="rtl"]) .prayers li.next { box-shadow: inset -3px 0 0 var(--accent); }
-  .prayers li.cur { background: var(--glass); }
-  .extras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--glass-border); font-size: 13px; }
-  .extras div { display: grid; gap: 2px; text-align: center; }
-  .empty { margin: 0 0 12px; }
-  .occ-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-  .occ-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--glass); }
-  .occ-list li .badge { grid-column: 2 / -1; justify-self: start; display: inline-flex; gap: 4px; align-items: center; }
-  .occ-list li.done { opacity: 0.55; }
-  .kind { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--glass-strong); }
-  .title { font-weight: 500; }
-  .warn { display: flex; gap: 8px; align-items: center; margin: 0; }
-  @media (max-width: 820px) {
-    .grid { grid-template-columns: 1fr; grid-template-areas: "hero" "prayers" "plan"; }
+  .times li + li { border-top: 1px solid var(--hairline); }
+  .name { font-size: 17px; font-weight: 500; display: flex; align-items: baseline; gap: 8px; }
+  .time { font-size: 18px; font-weight: 400; color: var(--ink-2); }
+  .sub { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+  .minor .name, .minor .time { font-size: 14px; color: var(--ink-3); }
+  .past:not(.minor) .name, .past:not(.minor) .time { color: var(--ink-3); }
+  .cur .name::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-2); align-self: center; }
+  .next .name, .next .time { color: var(--accent); font-weight: 600; }
+  .next .sub { color: color-mix(in srgb, var(--accent) 75%, var(--ink)); }
+  .est { font-size: 11px; color: var(--warn); text-decoration: none; font-weight: 500; }
+
+  .extras { display: flex; justify-content: space-between; margin: 14px 0 22px; font-size: 12.5px; }
+  .extras div { display: grid; gap: 3px; }
+  .extras dt { color: var(--ink-3); }
+  .extras dd { margin: 0; color: var(--ink-2); }
+
+  .plan-label { margin-top: 22px; }
+  .empty { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+  .plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .plan li { display: grid; grid-template-columns: 52px 1fr; gap: 14px; align-items: baseline; }
+  .when { color: var(--ink-3); font-size: 13.5px; }
+  .what { font-size: 15px; line-height: 1.35; }
+  .what .until { color: var(--ink-3); font-size: 13px; font-weight: 400; }
+  .clash { display: block; color: var(--warn); font-size: 12.5px; margin-top: 2px; }
+  .done { opacity: 0.45; }
+
+  @media (max-width: 860px) {
+    .today { grid-template-columns: 1fr; }
   }
 </style>

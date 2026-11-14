@@ -14,7 +14,12 @@
 4. **RTL is first-class.** Arabic is not a translation afterthought. Layouts use
    logical directions (start/end), icons with direction mirror, numerals follow
    the locale (Arabic-Indic in `ar`), and the sun's path runs right-to-left in RTL.
-5. **Honest accuracy.** When a time is estimated (high-latitude rule, polar
+5. **Restraint over decoration.** No outlines around every element, no box inside
+   a box, no coloured stripe on the active row. Structure comes from type scale,
+   spacing and hairlines. A surface (veil) is used only where text must stay legible
+   over a bright sky, and then one per region. The active or next item is shown by
+   colour and weight, not by a frame.
+6. **Honest accuracy.** When a time is estimated (high-latitude rule, polar
    fallback), the UI says so with a small badge and an explanation.
 
 ## Palette
@@ -53,17 +58,14 @@ twinkling between 58 % and 100 % of its own maximum opacity (0.28–0.9) over 2�
 The whole field fades by `progress`: 0.65 → 0.2 by sunrise, gone by 0.18,
 returning from 0.7 to 0.85 by Maghrib and 1.0 at night.
 
-## Glass
+## Surfaces ("veil")
 
-- Fill: white at 3.5 % over a dark blur (iOS `BlurView`/`.ultraThinMaterial` dark,
-  intensity ≈ 38; web `backdrop-filter: blur(26px)` plus a 34 % `#060A14` tint).
-- Border: 0.5 px, white at 10 %.
-- **Highlight:** a single 1 px line along the top edge, inset 18 px from each side,
-  white at 16 %.
-- Shadow: `#020617`, y 10, blur 24, 18 %.
-- Radius: 24 (cards), 16 (rows), 999 (chips).
-- Respect *Reduce Transparency* (solid panes) and *Reduce Motion* (no twinkle, glow
-  or shimmer).
+- No borders. A veil is a soft dark wash (`#060A14` at 30 % → 42 %, top to bottom)
+  over a backdrop blur (iOS `.ultraThinMaterial` dark; web `backdrop-filter: blur(26px)`).
+- Radius 24. One veil per region (e.g. the Today timeline, the composer, the item list).
+- Rows inside a veil are separated by 1 px hairlines (white at 9 %), never boxed.
+- Inputs: filled (white 8 %), no border, with a 1.5 px accent ring on focus.
+- Respect *Reduce Transparency* (solid veil) and *Reduce Motion* (no twinkle, glow or shimmer).
 
 ## Celestial scene (Today hero)
 
@@ -97,17 +99,25 @@ A 268-unit-high scene above the countdown:
 
 ## Scheduling UX
 
-The composer is one line of text *and* a chip row that stay in sync:
+**Composer:** a large borderless line ("Meeting 30 min after Asr for 1 hour") above
+the same item written as a sentence of editable words. Each word is underlined in the
+accent colour and opens a native picker:
 
-```
-[ Meeting 30 min after asr for 1h            ]
- ( 30 min ) ( after ▾ ) ( Asr ▾ )  ·  ( 1 h ▾ )  ·  ( Daily ▾ )
-```
+> **Event** *Gym* · **10** min **before** **Maghrib** · for **60** min · **every day**
 
-Typing fills the chips (via the shared Rust parser); tapping chips rewrites the
-description. A live preview shows today's resolved time and, if the block
-touches a prayer's protected window, a gentle amber warning with a "move to after
-Asr" suggestion from `free_slots`.
+Word order follows the language (Arabic: «قبل المغرب بـ١٠ دقائق»). Typing re-fills the
+words through the shared Rust parser. Below it is the resolved time for today. If
+the item touches a prayer's protected time, an amber line says which prayer and
+offers the nearest free slot as a link ("Move to 20 min after Asr (15:39)").
+
+**Day strip:** one band from just before Fajr to midnight, drawn in this order:
+1. **Prayer labels** across the top: name and time.
+2. **Gap lengths** between the protected windows (the *fasila*).
+3. **The track**, with the protected windows drawn on it as soft bars.
+4. **Today's items** below the track, in accent, or amber if one clashes with a prayer.
+5. **The draft** being composed, as a dashed bar.
+
+A vertical line marks "now".
 
 ## Notifications
 
