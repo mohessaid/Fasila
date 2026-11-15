@@ -150,7 +150,7 @@ struct SettingsView: View {
             }
 
             if let error = store.errorMessage {
-                Section { Text(verbatim: error).foregroundStyle(.orange).font(.footnote) }
+                Section { Text(verbatim: error).foregroundStyle(.orange).font(.fasila(.footnote)) }
             }
         }
         .formStyle(.grouped)

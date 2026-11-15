@@ -1687,19 +1687,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Compass accuracy is low — move your device in a figure eight."
+            "value": "Compass accuracy is low. Move your device in a figure eight."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "دقة البوصلة منخفضة — حرّك جهازك على شكل الرقم ٨."
+            "value": "دقة البوصلة منخفضة؛ حرّك جهازك على شكل الرقم ٨."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Précision faible — décrivez un 8 avec l'appareil."
+            "value": "Précision faible : décrivez un 8 avec l'appareil."
           }
         }
       }
@@ -1756,19 +1756,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ayyam al-Bid (13–15)"
+            "value": "Ayyam al-Bid (13-15)"
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأيام البيض (١٣–١٥)"
+            "value": "الأيام البيض (١٣-١٥)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ayyam al-Bid (13–15)"
+            "value": "Ayyam al-Bid (13-15)"
           }
         }
       }
@@ -2965,6 +2965,190 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ouvrez Fasila pour choisir votre lieu."
+          }
+        }
+      }
+    },
+    "today.isNext %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is next"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الصلاة القادمة: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prochaine : %@"
+          }
+        }
+      }
+    },
+    "today.at %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "at %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عند %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "à %@"
+          }
+        }
+      }
+    },
+    "today.in %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بعد %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dans %@"
+          }
+        }
+      }
+    },
+    "today.now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الآن"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maintenant"
+          }
+        }
+      }
+    },
+    "today.lunarDay %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LUNAR DAY %1$@ · %2$@%% LIT"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اليوم القمري %1$@ · %2$@%% مضاء"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JOUR LUNAIRE %1$@ · %2$@ %% ÉCLAIRÉE"
+          }
+        }
+      }
+    },
+    "today.whiteDays": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AYYĀM AL-BĪḌ"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأيام البيض"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JOURS BLANCS"
+          }
+        }
+      }
+    },
+    "today.plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's plan"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خطة اليوم"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Programme du jour"
+          }
+        }
+      }
+    },
+    "range %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ to %2$@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ إلى %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ à %2$@"
           }
         }
       }

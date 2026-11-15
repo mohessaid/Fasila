@@ -1,34 +1,9 @@
 import SwiftUI
 
-/// The six periods of the living sky (docs/DESIGN.md).
-enum SkyPeriod: String, CaseIterable, Sendable {
-    case night, fajr, morning, dhuhr, asr, maghrib
-
-    var palette: SkyPalette {
-        switch self {
-        case .night: return SkyPalette(top: 0x0B1026, bottom: 0x1B2350, accent: 0x8EA2FF)
-        case .fajr: return SkyPalette(top: 0x1E2A5A, bottom: 0xC77D8E, accent: 0xFFB4A2)
-        case .morning: return SkyPalette(top: 0x5FA8D3, bottom: 0xCDE7F0, accent: 0xFFD166)
-        case .dhuhr: return SkyPalette(top: 0x3A86C8, bottom: 0xA9D6F5, accent: 0xFFE08A)
-        case .asr: return SkyPalette(top: 0xD98E4A, bottom: 0xF4D29C, accent: 0xFFF1C9)
-        case .maghrib: return SkyPalette(top: 0x5B2A63, bottom: 0xE0735A, accent: 0xFFB38A)
-        }
-    }
-
-    var isLight: Bool { self == .morning || self == .dhuhr || self == .asr }
-
-    /// The prayer-day key that starts this period.
-    var startKey: PrayerKey {
-        switch self {
-        case .night: return .isha
-        case .fajr: return .fajr
-        case .morning: return .sunrise
-        case .dhuhr: return .dhuhr
-        case .asr: return .asr
-        case .maghrib: return .maghrib
-        }
-    }
-}
+/// Palette constants shared by the app and the widget.
+let fasilaInk = Color(red: 248 / 255, green: 250 / 255, blue: 252 / 255)
+let fasilaAccent = Color(red: 1, green: 155 / 255, blue: 84 / 255)
+let fasilaNight = Color(red: 6 / 255, green: 10 / 255, blue: 20 / 255)
 
 struct RGB: Equatable, Sendable {
     var r: Double, g: Double, b: Double
@@ -48,29 +23,46 @@ struct RGB: Equatable, Sendable {
     var color: Color { Color(red: r, green: g, blue: b) }
 }
 
-struct SkyPalette: Equatable, Sendable {
-    var top: RGB
-    var bottom: RGB
-    var accent: RGB
-    /// 0 = dark sky, 1 = light sky; drives glass opacity.
-    var lightness: Double
+/// The living sky (docs/DESIGN.md), computed by the shared Rust core
+/// (`FasilaEngine.sky`): colours pinned to real prayer times, the star curve and the
+/// adaptive glass tint that keeps text at WCAG AA on bright skies. Same model as Android.
+struct SkyLook: Equatable, Sendable {
+    /// Four gradient stops, top to bottom.
+    var stops: [RGB]
+    var starOpacity: Double
+    /// Opacity of the #060A14 tint under glass panels (0.36 at night, up to 0.84).
+    var glassTint: Double
+    var isDaytime: Bool
+    /// 0 at sunrise, 1 at Maghrib.
+    var sun: Double
+    /// 0 new, 0.25 first quarter, 0.5 full, 0.75 last quarter.
+    var moonPhase: Double
+    var moonIllumination: Double
 
-    init(top: UInt32, bottom: UInt32, accent: UInt32) {
-        self.top = RGB(hex: top); self.bottom = RGB(hex: bottom); self.accent = RGB(hex: accent)
-        lightness = [0x5FA8D3, 0x3A86C8, 0xD98E4A].contains(top) ? 1 : 0
+    static let night = SkyLook(
+        stops: [0x010208, 0x020510, 0x040A1B, 0x07132B].map { RGB(hex: $0) },
+        starOpacity: 1, glassTint: 0.36, isDaytime: false, sun: 0, moonPhase: 0.5, moonIllumination: 1)
+
+    init(stops: [RGB], starOpacity: Double, glassTint: Double, isDaytime: Bool, sun: Double,
+         moonPhase: Double, moonIllumination: Double) {
+        self.stops = stops; self.starOpacity = starOpacity; self.glassTint = glassTint
+        self.isDaytime = isDaytime; self.sun = sun; self.moonPhase = moonPhase; self.moonIllumination = moonIllumination
     }
 
-    init(top: RGB, bottom: RGB, accent: RGB, lightness: Double) {
-        self.top = top; self.bottom = bottom; self.accent = accent; self.lightness = lightness
+    init(_ s: SkyInfo, moon: MoonInfo) {
+        self.init(stops: s.colors.map { RGB(hex: $0) }, starOpacity: s.starOpacity, glassTint: s.glassTint,
+                  isDaytime: s.isDaytime, sun: s.sun, moonPhase: moon.phase, moonIllumination: moon.illumination)
     }
 
-    func mix(_ o: SkyPalette, _ t: Double) -> SkyPalette {
-        SkyPalette(top: top.mix(o.top, t), bottom: bottom.mix(o.bottom, t), accent: accent.mix(o.accent, t),
-                   lightness: lightness + (o.lightness - lightness) * t)
-    }
+    /// The one accent of the palette (warm lamp light).
+    var accent: RGB { RGB(hex: 0xFF9B54) }
 
     var gradient: LinearGradient {
-        LinearGradient(colors: [top.color, bottom.color], startPoint: .top, endPoint: .bottom)
+        let c = stops.count == 4 ? stops : SkyLook.night.stops
+        return LinearGradient(stops: [
+            .init(color: c[0].color, location: 0), .init(color: c[1].color, location: 0.38),
+            .init(color: c[2].color, location: 0.72), .init(color: c[3].color, location: 1),
+        ], startPoint: .top, endPoint: .bottom)
     }
 }
 
@@ -85,13 +77,14 @@ struct PrayerSnapshot {
     let now: Date
     /// The local day `now` falls on (in the location's time zone).
     let today: DayInfo
-    let previous: PrayerMoment?
+    /// The next local day (its Hijri date begins at today's Maghrib).
+    let tomorrow: DayInfo?
+    private(set) var previous: PrayerMoment?
     let next: PrayerMoment?
-    let period: SkyPeriod
-    /// Palette with the ~20 minute cross-fade around period boundaries applied.
-    let palette: SkyPalette
+    /// Sky colours, stars, glass tint and moon for `now`, from the core.
+    let sky: SkyLook
 
-    /// The gap until the next prayer — the fasila itself.
+    /// The gap until the next prayer: the fasila itself.
     var remaining: TimeInterval { next.map { $0.date.timeIntervalSince(now) } ?? 0 }
 
     /// Fraction of the current gap that has elapsed (0…1).
@@ -104,11 +97,12 @@ struct PrayerSnapshot {
     /// - Parameters:
     ///   - days: consecutive days that include yesterday, today and tomorrow.
     ///   - todayIndex: index of today's local date in `days`.
-    ///   - crossFade: false under Reduce Motion (instant period change).
-    init?(now: Date, days: [DayInfo], todayIndex: Int, crossFade: Bool = true) {
+    ///   - engine: the core engine, for the sky; `nil` falls back to the night sky.
+    init?(now: Date, days: [DayInfo], todayIndex: Int, engine: FasilaEngine?) {
         guard days.indices.contains(todayIndex) else { return nil }
         self.now = now
         self.today = days[todayIndex]
+        self.tomorrow = days.indices.contains(todayIndex + 1) ? days[todayIndex + 1] : nil
 
         let prayers: [PrayerMoment] = days.flatMap { d in
             PrayerKey.prayers.compactMap { k in d.time(k).map { PrayerMoment(key: k, date: $0) } }
@@ -116,28 +110,15 @@ struct PrayerSnapshot {
         previous = prayers.last { $0.date <= now }
         next = prayers.first { $0.date > now }
 
-        let boundaries: [(SkyPeriod, Date)] = days.flatMap { d in
-            SkyPeriod.allCases.compactMap { p in d.time(p.startKey).map { (p, $0) } }
-        }.sorted { $0.1 < $1.1 }
-        let curIdx = boundaries.lastIndex { $0.1 <= now }
-        let current = curIdx.map { boundaries[$0].0 } ?? .night
-        period = current
+        // Between sunrise and Dhuhr no obligatory prayer is current (Fajr ends at sunrise).
+        if previous?.key == .fajr, let sr = today.time(.sunrise), now >= sr { previous = nil }
 
-        var pal = current.palette
-        if crossFade, let i = curIdx {
-            let half: TimeInterval = 10 * 60
-            let elapsed = now.timeIntervalSince(boundaries[i].1)
-            if elapsed < half, i > 0 {
-                let t = 0.5 + elapsed / (2 * half)
-                pal = boundaries[i - 1].0.palette.mix(current.palette, t)
-            } else if i + 1 < boundaries.count {
-                let remaining = boundaries[i + 1].1.timeIntervalSince(now)
-                if remaining < half {
-                    let t = 0.5 - remaining / (2 * half)
-                    pal = current.palette.mix(boundaries[i + 1].0.palette, t)
-                }
-            }
+        if let engine, let d = CivilDate(iso: today.date),
+           let info = try? engine.sky(year: Int32(d.year), month: UInt8(d.month), day: UInt8(d.day),
+                                      now: Int64(now.timeIntervalSince1970)) {
+            sky = SkyLook(info, moon: moonPhase(unix: Int64(now.timeIntervalSince1970)))
+        } else {
+            sky = .night
         }
-        palette = pal
     }
 }

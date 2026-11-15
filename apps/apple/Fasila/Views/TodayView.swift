@@ -2,12 +2,11 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(FasilaStore.self) private var store
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         LivingSky {
             TimelineView(.periodic(from: .now, by: 1)) { ctx in
-                if let snap = store.snapshot(at: ctx.date, crossFade: !reduceMotion) {
+                if let snap = store.snapshot(at: ctx.date) {
                     content(snap)
                 } else {
                     ContentUnavailableView("today.unavailable", systemImage: "exclamationmark.triangle",
@@ -25,45 +24,35 @@ struct TodayView: View {
             VStack(spacing: 16) {
                 header(day, fmt: fmt)
 
-                DayDial(day: day, snapshot: snap, formatter: fmt, lang: store.language)
-                    .frame(maxWidth: 380)
-                    .padding(8)
+                // The scene sits directly on the sky; no card around it.
+                CelestialHero(snapshot: snap, formatter: fmt, language: store.language,
+                              latitude: store.config?.latitude ?? 0)
+                    .frame(maxWidth: 560)
                     .frame(maxWidth: .infinity)
-                    .glass()
                     .accessibilityLabel(dialLabel(snap, fmt: fmt))
 
-                if !day.occasions.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(day.occasions, id: \.self) { id in
-                                Chip(highlighted: true) { Text(LocalizedStringKey.key("occasion.\(id)")) }
-                            }
-                        }
-                    }
-                }
-
-                VStack(spacing: 0) {
+                // One panel: the next prayer is a lit row, the current one a quiet pane.
+                VStack(spacing: 2) {
                     ForEach(PrayerKey.listed) { key in
                         PrayerRow(key: key, day: day, snapshot: snap, formatter: fmt)
-                        if key != PrayerKey.listed.last { Divider().overlay(Color.white.opacity(0.15)) }
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 4)
-                .glass()
-
-                VStack(spacing: 0) {
-                    ForEach(PrayerKey.extra) { key in
-                        PrayerRow(key: key, day: day, snapshot: snap, formatter: fmt, secondary: true)
+                    HStack {
+                        ForEach(PrayerKey.extra) { key in
+                            VStack(spacing: 3) {
+                                Text(LocalizedStringKey(key.localizationKey)).font(.fasila(.caption)).onGlassSecondary()
+                                Text(verbatim: fmt.time(unix: day.unix(key))).font(.fasila(.caption, .medium)).monospacedDigit()
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
                     }
+                    .padding(.top, 12)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 4)
+                .padding(10)
                 .glass()
 
                 if day.polarFallback || day.fajrEstimated || day.ishaEstimated {
                     Label(LocalizedStringKey(day.polarFallback ? "estimated.polar" : "estimated.highLatitude"), systemImage: "info.circle")
-                        .font(.footnote)
+                        .font(.fasila(.footnote))
                         .onGlassSecondary()
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -79,16 +68,22 @@ struct TodayView: View {
     private func header(_ day: DayInfo, fmt: FasilaFormatter) -> some View {
         VStack(spacing: 4) {
             Text(store.config?.locationName ?? "")
-                .font(.headline)
+                .font(.fasila(.headline, .semibold))
                 .onGlassPrimary()
             if let civil = day.civil {
                 Text(fmt.longDate(civil))
-                    .font(.subheadline)
+                    .font(.fasila(.subheadline))
                     .onGlassSecondary()
             }
             Text(fmt.hijri(day, lang: store.lang))
-                .font(.subheadline)
+                .font(.fasila(.subheadline))
                 .onGlassSecondary()
+            if !day.occasions.isEmpty {
+                Text(day.occasions.map { store.language.tr("occasion.\($0)") }.joined(separator: ", "))
+                    .font(.fasila(.footnote, .medium))
+                    .foregroundStyle(fasilaAccent)
+                    .padding(.top, 2)
+            }
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -108,7 +103,7 @@ struct PrayerRow: View {
     let formatter: FasilaFormatter
     var secondary = false
 
-    @Environment(\.skyPalette) private var palette
+    @Environment(FasilaStore.self) private var store
     @State private var showInfo = false
 
     private var time: Date? { day.time(key) }
@@ -119,21 +114,28 @@ struct PrayerRow: View {
         HStack(spacing: 12) {
             Image(systemName: key.symbol)
                 .frame(width: 24)
-                .foregroundStyle(isNext ? palette.accent.color : .white.opacity(0.8))
+                .foregroundStyle(isNext ? fasilaAccent : fasilaInk.opacity(0.8))
                 .accessibilityHidden(true)
-            Text(LocalizedStringKey(key.localizationKey))
-                .font(secondary ? .subheadline : .body.weight(isCurrent || isNext ? .semibold : .regular))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(LocalizedStringKey(key.localizationKey))
+                    .font(secondary ? .fasila(.subheadline) : (isNext ? .fasila(.title3, .semibold) : .fasila(.body, .medium)))
+                if isNext, let t = time {
+                    Text(verbatim: store.language.tr("today.in %@", formatter.countdown(t.timeIntervalSince(snapshot.now))))
+                        .font(.fasila(.caption)).monospacedDigit().onGlassSecondary()
+                } else if isCurrent {
+                    Text("today.now").font(.fasila(.caption)).onGlassSecondary()
+                }
+            }
             if day.isEstimated(key) {
                 Button { showInfo = true } label: {
                     Text("badge.estimated")
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Capsule().fill(Color.orange.opacity(0.35)))
+                        .font(.fasila(.caption2, .semibold))
+                        .foregroundStyle(Color(red: 1, green: 178 / 255, blue: 107 / 255))
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showInfo) {
                     Text(LocalizedStringKey(day.polarFallback ? "estimated.polar" : "estimated.highLatitude"))
-                        .font(.footnote)
+                        .font(.fasila(.footnote))
                         .padding()
                         .frame(maxWidth: 300)
                         .presentationCompactAdaptation(.popover)
@@ -142,17 +144,22 @@ struct PrayerRow: View {
             Spacer(minLength: 8)
             Text(formatter.time(unix: day.unix(key)))
                 .monospacedDigit()
-                .font(secondary ? .subheadline : .body)
+                .font(secondary ? .fasila(.subheadline) : (isNext ? .fasila(.title3, .semibold) : .fasila(.body)))
         }
         .onGlassPrimary()
         .opacity(secondary ? 0.85 : 1)
-        .padding(.vertical, secondary ? 8 : 12)
-        .padding(.horizontal, 8)
-        .background {
-            if isCurrent {
-                RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.12))
-            }
-        }
+        .padding(.vertical, secondary ? 8 : (isNext ? 14 : 11))
+        .padding(.horizontal, 12)
+        .modifier(RowState(isNext: isNext, isCurrent: isCurrent))
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Lit pane for the next prayer, quiet pane for the current one, plain otherwise.
+private struct RowState: ViewModifier {
+    let isNext: Bool
+    let isCurrent: Bool
+    func body(content: Content) -> some View {
+        if isNext { content.glassLit() } else if isCurrent { content.glassPane() } else { content }
     }
 }

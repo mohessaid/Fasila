@@ -55,13 +55,13 @@ struct NextPrayerProvider: TimelineProvider {
         guard let days = try? engine.days(from: start, count: 4) else { return [] }
 
         let boundaries = days
-            .flatMap { d in SkyPeriod.allCases.compactMap { d.time($0.startKey) } }
+            .flatMap { d in [PrayerKey.fajr, .sunrise, .dhuhr, .asr, .maghrib, .isha].compactMap { d.time($0) } }
             .filter { $0 > now && $0 < now.addingTimeInterval(36 * 3600) }
             .sorted()
         return ([now] + boundaries).prefix(limit).compactMap { date in
             let iso = CivilDate(date, in: tz).iso
             guard let i = days.firstIndex(where: { $0.date == iso }), i > 0, i + 1 < days.count else { return nil }
-            let snap = PrayerSnapshot(now: date, days: Array(days[(i - 1)...(i + 1)]), todayIndex: 1, crossFade: false)
+            let snap = PrayerSnapshot(now: date, days: Array(days[(i - 1)...(i + 1)]), todayIndex: 1, engine: engine)
             return NextPrayerEntry(date: date, place: location.name, timeZone: tz, snapshot: snap)
         }
     }
@@ -79,7 +79,7 @@ struct NextPrayerWidgetView: View {
 
     private var language: AppLanguage { .current }
     private var formatter: FasilaFormatter { FasilaFormatter(locale: language.locale, timeZone: entry.timeZone) }
-    private var palette: SkyPalette { entry.snapshot?.palette ?? SkyPeriod.night.palette }
+    private var sky: SkyLook { entry.snapshot?.sky ?? .night }
 
     var body: some View {
         Group {
@@ -95,33 +95,36 @@ struct NextPrayerWidgetView: View {
                 }
             } else {
                 Text("widget.openApp")
-                    .font(.footnote)
+                    .font(.fasila(.footnote))
                     .multilineTextAlignment(.center)
             }
         }
         .foregroundStyle(Color.white.opacity(0.95))
         .environment(\.locale, language.locale)
         .environment(\.layoutDirection, language.layoutDirection)
-        .containerBackground(for: .widget) { palette.gradient }
+        // The live sky, darkened by the adaptive glass tint so white text stays legible.
+        .containerBackground(for: .widget) {
+            sky.gradient.overlay(fasilaNight.opacity(sky.glassTint * 0.7))
+        }
     }
 
     private func nextBlock(snap: PrayerSnapshot, next: PrayerMoment) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Image(systemName: next.key.symbol)
-                Text(LocalizedStringKey(next.key.localizationKey)).font(.headline)
+                Text(LocalizedStringKey(next.key.localizationKey)).font(.fasila(.headline, .semibold))
             }
             Text(timerInterval: snap.now...next.date, countsDown: true)
-                .font(.system(size: 30, weight: .light, design: .rounded))
+                .font(.fasila(size: 30, .light))
                 .monospacedDigit()
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             Text(verbatim: formatter.time(next.date))
-                .font(.subheadline)
+                .font(.fasila(.subheadline))
                 .opacity(0.75)
             Spacer(minLength: 0)
             Text(verbatim: entry.place)
-                .font(.caption2)
+                .font(.fasila(.caption2))
                 .opacity(0.7)
                 .lineLimit(1)
         }
@@ -136,7 +139,7 @@ struct NextPrayerWidgetView: View {
                     Spacer()
                     Text(verbatim: formatter.time(unix: snap.today.unix(key))).monospacedDigit()
                 }
-                .font(.caption.weight(snap.next?.key == key ? .bold : .regular))
+                .font(.fasila(.caption, snap.next?.key == key ? .bold : .regular))
                 .opacity(snap.next?.key == key ? 1 : 0.8)
             }
         }

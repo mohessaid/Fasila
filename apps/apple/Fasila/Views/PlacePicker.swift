@@ -39,7 +39,7 @@ struct PlacePicker: View {
 
             if busy { ProgressView().frame(maxWidth: .infinity) }
             if let error {
-                Text(error).font(.footnote).foregroundStyle(.orange)
+                Text(error).font(.fasila(.footnote)).foregroundStyle(.orange)
             }
 
             ScrollView {
@@ -64,7 +64,7 @@ struct PlacePicker: View {
             HStack {
                 Text(title).onGlassPrimary()
                 Spacer()
-                Text(subtitle).font(.caption).onGlassSecondary()
+                Text(subtitle).font(.fasila(.caption)).onGlassSecondary()
             }
             .padding(.vertical, 10)
             .contentShape(Rectangle())

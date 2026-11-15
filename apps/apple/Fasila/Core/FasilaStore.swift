@@ -90,11 +90,11 @@ final class FasilaStore {
         return info
     }
 
-    func snapshot(at now: Date, crossFade: Bool = true) -> PrayerSnapshot? {
+    func snapshot(at now: Date) -> PrayerSnapshot? {
         let t = today(now)
         let days = (-1...1).compactMap { day(t.adding(days: $0)) }
         guard days.count == 3 else { return nil }
-        return PrayerSnapshot(now: now, days: days, todayIndex: 1, crossFade: crossFade)
+        return PrayerSnapshot(now: now, days: days, todayIndex: 1, engine: engine)
     }
 
     /// Every day of a Gregorian month, in one engine call.

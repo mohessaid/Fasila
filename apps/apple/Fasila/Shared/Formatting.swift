@@ -19,7 +19,7 @@ struct FasilaFormatter: Sendable {
     }
 
     func time(unix: Int64?) -> String {
-        guard let unix else { return "—" }
+        guard let unix else { return "--:--" }
         return time(Date(timeIntervalSince1970: TimeInterval(unix)))
     }
 

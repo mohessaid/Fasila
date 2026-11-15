@@ -43,9 +43,9 @@ struct CalendarView: View {
             Spacer()
             VStack(spacing: 2) {
                 Text(verbatim: fmt.monthYear(year: month.year, month: month.month))
-                    .font(.title2.weight(.light))
+                    .font(.fasila(.title2, .light))
                 Text(verbatim: hijriRange(days, fmt: fmt))
-                    .font(.subheadline)
+                    .font(.fasila(.subheadline))
                     .onGlassSecondary()
             }
             Spacer()
@@ -53,7 +53,7 @@ struct CalendarView: View {
                 .accessibilityLabel(Text("calendar.next"))
         }
         .buttonStyle(.plain)
-        .font(.title3)
+        .font(.fasila(.title3))
         .onGlassPrimary()
     }
 
@@ -64,7 +64,7 @@ struct CalendarView: View {
             return "\(name(first)) \(fmt.number(Int(first.hijriYear)))"
         }
         let firstPart = first.hijriYear == last.hijriYear ? name(first) : "\(name(first)) \(fmt.number(Int(first.hijriYear)))"
-        return "\(firstPart) – \(name(last)) \(fmt.number(Int(last.hijriYear)))"
+        return store.language.tr("range %@ %@", firstPart, "\(name(last)) \(fmt.number(Int(last.hijriYear)))")
     }
 
     private func grid(days: [DayInfo], fmt: FasilaFormatter) -> some View {
@@ -77,7 +77,7 @@ struct CalendarView: View {
 
         return LazyVGrid(columns: columns, spacing: 6) {
             ForEach(0..<7, id: \.self) { i in
-                Text(verbatim: ordered[i]).font(.caption.weight(.semibold)).onGlassSecondary()
+                Text(verbatim: ordered[i]).font(.fasila(.caption, .semibold)).onGlassSecondary()
             }
             ForEach(0..<leading, id: \.self) { i in
                 Color.clear.frame(height: 48).id("blank-\(i)")
@@ -98,12 +98,12 @@ struct CalendarView: View {
                 ForEach(marked, id: \.date) { d in
                     HStack(alignment: .firstTextBaseline) {
                         Text(verbatim: d.civil.map(fmt.shortDate) ?? d.date)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.fasila(.subheadline, .semibold))
                             .frame(minWidth: 90, alignment: .leading)
                         VStack(alignment: .leading) {
                             ForEach(d.occasions, id: \.self) { o in Text(LocalizedStringKey.key("occasion.\(o)")) }
                         }
-                        .font(.subheadline)
+                        .font(.fasila(.subheadline))
                     }
                     .onGlassPrimary()
                 }
@@ -132,21 +132,21 @@ private struct DayCell: View {
     let isToday: Bool
     let fmt: FasilaFormatter
     let lang: String
-    @Environment(\.skyPalette) private var palette
+    @Environment(\.skyLook) private var sky
 
     var body: some View {
         VStack(spacing: 2) {
             Text(verbatim: fmt.number(day.civil?.day ?? 0))
-                .font(.body.weight(isToday ? .bold : .regular))
+                .font(.fasila(.body, isToday ? .bold : .regular))
             Text(verbatim: day.hijriDay == 1
                  ? hijriMonthName(month: day.hijriMonth, lang: lang)
                  : fmt.number(Int(day.hijriDay)))
-                .font(.caption2)
+                .font(.fasila(.caption2))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .onGlassSecondary()
             Circle()
-                .fill(day.occasions.isEmpty ? Color.clear : palette.accent.color)
+                .fill(day.occasions.isEmpty ? Color.clear : sky.accent.color)
                 .frame(width: 5, height: 5)
         }
         .onGlassPrimary()
@@ -178,7 +178,7 @@ struct DayDetailView: View {
                         HStack {
                             Text(LocalizedStringKey(key.localizationKey))
                             if day.isEstimated(key) {
-                                Text("badge.estimated").font(.caption2).foregroundStyle(.orange)
+                                Text("badge.estimated").font(.fasila(.caption2)).foregroundStyle(.orange)
                             }
                             Spacer()
                             Text(verbatim: fmt.time(unix: day.unix(key))).monospacedDigit()

@@ -69,7 +69,7 @@ struct QiblaView: View {
         LivingSky {
             VStack(spacing: 24) {
                 Text("tab.qibla")
-                    .font(.largeTitle.weight(.light))
+                    .font(.fasila(.largeTitle, .light))
                     .onGlassPrimary()
 
                 ZStack {
@@ -83,7 +83,7 @@ struct QiblaView: View {
                         .offset(y: -110)
                         .rotationEffect(.degrees(relative))
                     Image(systemName: "building.columns.fill") // centre marker
-                        .font(.title)
+                        .font(.fasila(.title))
                         .onGlassSecondary()
                 }
                 .frame(width: 300, height: 300)
@@ -97,20 +97,20 @@ struct QiblaView: View {
 
                 VStack(spacing: 6) {
                     Text(verbatim: store.language.tr("qibla.bearing %@", "\(store.formatter.number(Int(bearing.rounded())))°"))
-                        .font(.title3)
+                        .font(.fasila(.title3))
                     if let km = store.distanceToKaabaKm {
                         Text(verbatim: store.language.tr("qibla.distance %@", km.formatted(.number.precision(.fractionLength(0)).locale(store.language.locale))))
-                            .font(.subheadline)
+                            .font(.fasila(.subheadline))
                             .onGlassSecondary()
                     }
                     if !HeadingProvider.isAvailable {
                         Text("qibla.noCompass")
-                            .font(.footnote)
+                            .font(.fasila(.footnote))
                             .multilineTextAlignment(.center)
                             .onGlassSecondary()
                     } else if let acc = compass.accuracy, acc < 0 || acc > 20 {
                         Text("qibla.calibrate")
-                            .font(.footnote)
+                            .font(.fasila(.footnote))
                             .foregroundStyle(.orange)
                     }
                 }
@@ -142,7 +142,7 @@ private struct CompassRose: View {
                     .rotationEffect(.degrees(Double(i) * 5))
             }
             Text(verbatim: "N")
-                .font(.headline)
+                .font(.fasila(.headline, .semibold))
                 .foregroundStyle(.red)
                 .offset(y: -115)
         }

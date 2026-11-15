@@ -61,6 +61,12 @@ struct RootView: View {
                     .tag(AppTab.settings)
             }
             .tint(.white)
+            #if os(iOS)
+            // The native tab bar on dark frosted material, so it reads as part of the glass.
+            .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+            .toolbarBackground(.visible, for: .tabBar)
+            .toolbarColorScheme(.dark, for: .tabBar)
+            #endif
         } else {
             OnboardingView()
         }
@@ -74,7 +80,7 @@ struct OnboardingView: View {
             VStack(spacing: 20) {
                 VStack(spacing: 8) {
                     Text("app.name")
-                        .font(.system(size: 44, weight: .light, design: .rounded))
+                        .font(.fasila(size: 44, .light))
                         .onGlassPrimary()
                     Text("onboarding.tagline")
                         .multilineTextAlignment(.center)

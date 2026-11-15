@@ -8,7 +8,7 @@ struct ScheduleView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("tab.schedule")
-                        .font(.largeTitle.weight(.light))
+                        .font(.fasila(.largeTitle, .light))
                         .onGlassPrimary()
 
                     ComposerView()
@@ -17,7 +17,7 @@ struct ScheduleView: View {
 
                     if store.items.isEmpty {
                         Text("schedule.empty")
-                            .font(.subheadline)
+                            .font(.fasila(.subheadline))
                             .onGlassSecondary()
                             .padding(16)
                             .frame(maxWidth: .infinity)
@@ -56,8 +56,8 @@ struct ItemRow: View {
                 .padding(.top, 2)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: item.title).font(.body.weight(.medium))
-                Text(verbatim: summary).font(.subheadline).onGlassSecondary()
+                Text(verbatim: item.title).font(.fasila(.body, .medium))
+                Text(verbatim: summary).font(.fasila(.subheadline)).onGlassSecondary()
                 if let today {
                     HStack(spacing: 6) {
                         Text(verbatim: store.formatter.time(unix: today.start))
@@ -67,7 +67,7 @@ struct ItemRow: View {
                                 .foregroundStyle(.orange)
                         }
                     }
-                    .font(.caption)
+                    .font(.fasila(.caption))
                 }
             }
             Spacer(minLength: 8)

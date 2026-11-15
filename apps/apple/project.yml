@@ -43,6 +43,10 @@ targets:
       - path: ../../data/hijri/announcements.json
         buildPhase: resources
         group: SharedData
+      # Inter + Tajawal (OFL), shared with the Android app.
+      - path: ../android/app/src/main/res/font
+        buildPhase: resources
+        group: Fonts
     dependencies:
       - framework: Generated/FasilaFFI.xcframework
         embed: false
@@ -65,6 +69,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         NSLocationWhenInUseUsageDescription: Fasila uses your location to compute prayer times and the Qibla direction. It never leaves your device.
+        UIAppFonts: [inter_light.ttf, inter_regular.ttf, inter_medium.ttf, inter_semibold.ttf, inter_bold.ttf, tajawal_regular.ttf, tajawal_medium.ttf, tajawal_bold.ttf]
     settings:
       base:
         PRODUCT_NAME: Fasila
@@ -92,6 +97,7 @@ targets:
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, ar, fr]
         LSApplicationCategoryType: public.app-category.lifestyle
+        ATSApplicationFontsPath: "."
         NSLocationUsageDescription: Fasila uses your location to compute prayer times and the Qibla direction. It never leaves your device.
         NSLocationWhenInUseUsageDescription: Fasila uses your location to compute prayer times and the Qibla direction. It never leaves your device.
     settings:
@@ -109,6 +115,9 @@ targets:
         group: FasilaWidget/Shared
       - path: Fasila/Resources/Localizable.xcstrings
         group: FasilaWidget/Shared
+      - path: ../android/app/src/main/res/font
+        buildPhase: resources
+        group: FasilaWidget/Fonts
       - path: Generated/fasila_ffi.swift
         optional: true
         group: Generated
@@ -128,6 +137,7 @@ targets:
         CFBundleDisplayName: Fasila
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        UIAppFonts: [inter_light.ttf, inter_regular.ttf, inter_medium.ttf, inter_semibold.ttf, inter_bold.ttf, tajawal_regular.ttf, tajawal_medium.ttf, tajawal_bold.ttf]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.fasila.widget

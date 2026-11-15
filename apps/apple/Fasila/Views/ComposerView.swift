@@ -65,7 +65,7 @@ struct ComposerView: View {
         VStack(alignment: .leading, spacing: 12) {
             TextField("composer.placeholder", text: $text)
                 .textFieldStyle(.plain)
-                .font(.title3)
+                .font(.fasila(.title3))
                 .onGlassPrimary()
                 .padding(12)
                 .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.12)))
@@ -73,7 +73,7 @@ struct ComposerView: View {
                 .onChange(of: text) { _, newValue in parse(newValue) }
 
             if parseFailed {
-                Text("composer.parseHint").font(.caption).foregroundStyle(.orange)
+                Text("composer.parseHint").font(.fasila(.caption)).foregroundStyle(.orange)
             }
 
             chips(fmt: fmt)
@@ -185,7 +185,7 @@ struct ComposerView: View {
                 } icon: {
                     Image(systemName: "clock")
                 }
-                .font(.subheadline)
+                .font(.fasila(.subheadline))
                 .onGlassSecondary()
 
                 if let conflict = occ.conflicts.first {
@@ -208,7 +208,7 @@ struct ComposerView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .font(.subheadline)
+                    .font(.fasila(.subheadline))
                     .foregroundStyle(Color(red: 1, green: 0.8, blue: 0.4))
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
