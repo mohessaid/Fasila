@@ -117,7 +117,7 @@ targets:
         group: FasilaWidget/Shared
       - path: ../android/app/src/main/res/font
         buildPhase: resources
-        group: FasilaWidget/Fonts
+        group: Fonts
       - path: Generated/fasila_ffi.swift
         optional: true
         group: Generated
