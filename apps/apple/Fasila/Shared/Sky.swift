@@ -4,6 +4,7 @@ import SwiftUI
 let fasilaInk = Color(red: 248 / 255, green: 250 / 255, blue: 252 / 255)
 let fasilaAccent = Color(red: 1, green: 155 / 255, blue: 84 / 255)
 let fasilaNight = Color(red: 6 / 255, green: 10 / 255, blue: 20 / 255)
+let fasilaWarn = Color(red: 1, green: 178 / 255, blue: 107 / 255)
 
 struct RGB: Equatable, Sendable {
     var r: Double, g: Double, b: Double

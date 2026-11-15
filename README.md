@@ -57,7 +57,8 @@ with a single highlight line along the top edge. Today's hero is a **celestial
 scene**: the sun moves along its arc from sunrise to Maghrib, with Dhuhr and Asr
 marked on it. At night the moon appears in its real, computed phase, together with
 the Hijri lunar day and the White Days. Arabic is first-class: RTL layouts,
-Tajawal type and Arabic-Indic numerals. See [docs/DESIGN.md](docs/DESIGN.md).
+Tajawal type and the digits used in your region (Western in the Maghreb,
+Arabic-Indic in the Mashriq). See [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Quick start
 

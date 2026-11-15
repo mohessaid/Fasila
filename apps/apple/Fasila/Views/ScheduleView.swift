@@ -26,10 +26,9 @@ struct ScheduleView: View {
                         let today = store.today()
                         let todays = Dictionary(store.occurrences(from: today, days: 1).map { ($0.itemId, $0) },
                                                 uniquingKeysWith: { a, _ in a })
-                        VStack(spacing: 0) {
+                        VStack(spacing: 4) {
                             ForEach(store.items) { item in
                                 ItemRow(item: item, today: todays[item.id])
-                                if item.id != store.items.last?.id { Divider().overlay(Color.white.opacity(0.15)) }
                             }
                         }
                         .padding(.horizontal, 12)
@@ -64,7 +63,7 @@ struct ItemRow: View {
                             .monospacedDigit()
                         if !today.conflicts.isEmpty {
                             Label("schedule.conflictBadge", systemImage: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(fasilaWarn)
                         }
                     }
                     .font(.fasila(.caption))

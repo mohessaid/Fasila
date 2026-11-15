@@ -70,7 +70,9 @@ final class FasilaStore {
     var hasLocation: Bool { engine != nil }
     var timeZone: TimeZone { config?.timeZone ?? .current }
     var lang: String { language.code }
-    var formatter: FasilaFormatter { FasilaFormatter(locale: language.locale, timeZone: timeZone) }
+    var formatter: FasilaFormatter {
+        FasilaFormatter(locale: formattingLocale(language.locale, country: config?.country ?? ""), timeZone: timeZone)
+    }
 
     var methods: [MethodInfo] {
         if let m = cachedMethods { return m }

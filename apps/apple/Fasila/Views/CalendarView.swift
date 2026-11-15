@@ -151,11 +151,7 @@ private struct DayCell: View {
         }
         .onGlassPrimary()
         .frame(maxWidth: .infinity, minHeight: 48)
-        .background {
-            if isToday {
-                RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.2))
-            }
-        }
+        .modifier(TodayCell(isToday: isToday))
         .contentShape(Rectangle())
     }
 }
@@ -178,7 +174,7 @@ struct DayDetailView: View {
                         HStack {
                             Text(LocalizedStringKey(key.localizationKey))
                             if day.isEstimated(key) {
-                                Text("badge.estimated").font(.fasila(.caption2)).foregroundStyle(.orange)
+                                Text("badge.estimated").font(.fasila(.caption2)).foregroundStyle(fasilaWarn)
                             }
                             Spacer()
                             Text(verbatim: fmt.time(unix: day.unix(key))).monospacedDigit()
@@ -196,5 +192,13 @@ struct DayDetailView: View {
         #if os(macOS)
         .frame(minWidth: 380, minHeight: 480)
         #endif
+    }
+}
+
+/// Today is a lit pane; other days are plain.
+private struct TodayCell: ViewModifier {
+    let isToday: Bool
+    func body(content: Content) -> some View {
+        if isToday { content.glassLit(radius: 12) } else { content }
     }
 }

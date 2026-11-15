@@ -92,6 +92,15 @@ extension View {
     func onGlassSecondary() -> some View { foregroundStyle(Color(red: 226 / 255, green: 232 / 255, blue: 240 / 255).opacity(0.84)) }
 }
 
+/// A full-screen dark tint for the current sky, for content that sits on the sky
+/// (e.g. native Form section headers). Reads the sky inside `LivingSky`.
+struct SkyTintBackground: ViewModifier {
+    @Environment(\.skyLook) private var sky
+    func body(content: Content) -> some View {
+        content.background(fasilaNight.opacity(sky.glassTint * 0.7).ignoresSafeArea())
+    }
+}
+
 private struct SkyLookKey: EnvironmentKey {
     static let defaultValue = SkyLook.night
 }

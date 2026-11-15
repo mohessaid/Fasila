@@ -13,7 +13,9 @@
    Windows/Linux. Same core (Rust), same tokens, platform-idiomatic controls.
 4. **RTL is first-class.** Arabic is not a translation afterthought. Layouts use
    logical directions (start/end), icons with direction mirror, numerals follow
-   the locale (Arabic-Indic in `ar`), and the sun's path runs right-to-left in RTL.
+   the location's region (Arabic formats as `ar-<country>`: Western digits in DZ/MA/TN,
+   Arabic-Indic in EG/SA, with a Numerals setting to force either), and the sun's
+   path runs right-to-left in RTL.
 5. **One design language.** This is a glass system: depth comes from layered
    frosted panes and state from how lit a pane is. Don't borrow markers from other
    systems (side stripes, underlines, indicator dots, outline rings, hairline dividers).

@@ -130,7 +130,7 @@ struct PrayerRow: View {
                 Button { showInfo = true } label: {
                     Text("badge.estimated")
                         .font(.fasila(.caption2, .semibold))
-                        .foregroundStyle(Color(red: 1, green: 178 / 255, blue: 107 / 255))
+                        .foregroundStyle(fasilaWarn)
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showInfo) {

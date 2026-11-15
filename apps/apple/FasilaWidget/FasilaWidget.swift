@@ -29,6 +29,7 @@ struct NextPrayerEntry: TimelineEntry {
     let place: String
     let timeZone: TimeZone
     let snapshot: PrayerSnapshot?
+    var country: String = ""
 }
 
 struct NextPrayerProvider: TimelineProvider {
@@ -62,14 +63,15 @@ struct NextPrayerProvider: TimelineProvider {
             let iso = CivilDate(date, in: tz).iso
             guard let i = days.firstIndex(where: { $0.date == iso }), i > 0, i + 1 < days.count else { return nil }
             let snap = PrayerSnapshot(now: date, days: Array(days[(i - 1)...(i + 1)]), todayIndex: 1, engine: engine)
-            return NextPrayerEntry(date: date, place: location.name, timeZone: tz, snapshot: snap)
+            return NextPrayerEntry(date: date, place: location.name, timeZone: tz, snapshot: snap, country: location.country)
         }
     }
 
-    private static func location(_ json: String) -> (name: String, timezone: String) {
+    private static func location(_ json: String) -> (name: String, timezone: String, country: String) {
         let root = (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any]
         let loc = root?["location"] as? [String: Any]
-        return (loc?["name"] as? String ?? "", loc?["timezone"] as? String ?? TimeZone.current.identifier)
+        return (loc?["name"] as? String ?? "", loc?["timezone"] as? String ?? TimeZone.current.identifier,
+                loc?["country"] as? String ?? "")
     }
 }
 
@@ -78,7 +80,7 @@ struct NextPrayerWidgetView: View {
     @Environment(\.widgetFamily) private var family
 
     private var language: AppLanguage { .current }
-    private var formatter: FasilaFormatter { FasilaFormatter(locale: language.locale, timeZone: entry.timeZone) }
+    private var formatter: FasilaFormatter { FasilaFormatter(locale: formattingLocale(language.locale, country: entry.country), timeZone: entry.timeZone) }
     private var sky: SkyLook { entry.snapshot?.sky ?? .night }
 
     var body: some View {

@@ -79,7 +79,7 @@ struct QiblaView: View {
                     // Needle points at the Kaaba.
                     Image(systemName: "location.north.fill")
                         .font(.system(size: 56))
-                        .foregroundStyle(aligned ? Color.green : .white)
+                        .foregroundStyle(aligned ? fasilaAccent : fasilaInk)
                         .offset(y: -110)
                         .rotationEffect(.degrees(relative))
                     Image(systemName: "building.columns.fill") // centre marker
@@ -111,10 +111,13 @@ struct QiblaView: View {
                     } else if let acc = compass.accuracy, acc < 0 || acc > 20 {
                         Text("qibla.calibrate")
                             .font(.fasila(.footnote))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(fasilaWarn)
                     }
                 }
                 .onGlassPrimary()
+                // Text that would otherwise sit on the bright sky goes on a glass panel.
+                .padding(.horizontal, 20).padding(.vertical, 14)
+                .glass(radius: 20)
             }
             .padding(16)
         }
@@ -133,7 +136,9 @@ struct QiblaView: View {
 private struct CompassRose: View {
     var body: some View {
         ZStack {
-            Circle().strokeBorder(Color.white.opacity(0.35), lineWidth: 2)
+            // A frosted dial (no outline ring), lit from above.
+            Circle().fill(RadialGradient(colors: [.white.opacity(0.16), .white.opacity(0.04)],
+                                         center: UnitPoint(x: 0.5, y: 0.3), startRadius: 0, endRadius: 220))
             ForEach(0..<72, id: \.self) { i in
                 Rectangle()
                     .fill(Color.white.opacity(i % 18 == 0 ? 0.9 : 0.35))

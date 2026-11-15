@@ -3,6 +3,15 @@ import Foundation
 /// All user-visible times are rendered in the *location's* time zone
 /// (`config.location.timezone`), not the device's: travelling users see the
 /// times of the place they configured.
+/// Arabic without a region takes the location's country, so ICU picks the digits people
+/// there use: Western in DZ/MA/TN, Arabic-Indic in EG/SA (same rule as desktop and Android).
+func formattingLocale(_ base: Locale, country: String) -> Locale {
+    let cc = country.uppercased()
+    guard base.language.languageCode?.identifier == "ar", base.region == nil,
+          cc.count == 2, cc.allSatisfy({ $0.isLetter }) else { return base }
+    return Locale(identifier: "ar_\(cc)")
+}
+
 struct FasilaFormatter: Sendable {
     var locale: Locale
     var timeZone: TimeZone

@@ -39,7 +39,7 @@ struct PlacePicker: View {
 
             if busy { ProgressView().frame(maxWidth: .infinity) }
             if let error {
-                Text(error).font(.fasila(.footnote)).foregroundStyle(.orange)
+                Text(error).font(.fasila(.footnote)).foregroundStyle(fasilaWarn)
             }
 
             ScrollView {

@@ -68,12 +68,12 @@ struct ComposerView: View {
                 .font(.fasila(.title3))
                 .onGlassPrimary()
                 .padding(12)
-                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white.opacity(0.12)))
+                .glassPane()
                 .onSubmit(add)
                 .onChange(of: text) { _, newValue in parse(newValue) }
 
             if parseFailed {
-                Text("composer.parseHint").font(.fasila(.caption)).foregroundStyle(.orange)
+                Text("composer.parseHint").font(.fasila(.caption)).foregroundStyle(fasilaWarn)
             }
 
             chips(fmt: fmt)
@@ -209,10 +209,9 @@ struct ComposerView: View {
                         }
                     }
                     .font(.fasila(.subheadline))
-                    .foregroundStyle(Color(red: 1, green: 0.8, blue: 0.4))
-                    .padding(10)
+                    .foregroundStyle(fasilaWarn)
+                    .padding(.vertical, 6)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.orange.opacity(0.18)))
                 }
             }
         }

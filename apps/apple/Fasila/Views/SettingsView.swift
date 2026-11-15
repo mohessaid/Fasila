@@ -150,11 +150,14 @@ struct SettingsView: View {
             }
 
             if let error = store.errorMessage {
-                Section { Text(verbatim: error).foregroundStyle(.orange).font(.fasila(.footnote)) }
+                Section { Text(verbatim: error).foregroundStyle(fasilaWarn).font(.fasila(.footnote)) }
             }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
+        // Section headers sit on the sky: the adaptive tint keeps them legible on bright skies.
+        .modifier(SkyTintBackground())
+        .environment(\.colorScheme, .dark)
         .frame(maxWidth: 700)
         .frame(maxWidth: .infinity)
     }
