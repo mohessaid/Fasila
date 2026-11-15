@@ -1,0 +1,50 @@
+name: Apple
+
+# macOS minutes are expensive: run only when the Apple app or the shared core changes.
+on:
+  push:
+    paths:
+      - "apps/apple/**"
+      - "crates/fasila-core/**"
+      - "crates/fasila-ffi/**"
+      - "scripts/build-apple.sh"
+      - ".github/workflows/apple.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: iOS + macOS (compile, unsigned)
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios,aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+      - run: brew install xcodegen
+      - name: Rust core -> xcframework + Swift bindings
+        run: scripts/build-apple.sh --debug
+      - name: Generate Xcode project
+        working-directory: apps/apple
+        run: xcodegen generate
+      - name: Build iOS (simulator)
+        working-directory: apps/apple
+        run: |
+          set -o pipefail
+          xcodebuild -project Fasila.xcodeproj -scheme Fasila-iOS \
+            -destination 'generic/platform=iOS Simulator' -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO build | tee ios.log | grep -E "error:|warning: .*deprecated|BUILD" || true
+          grep -q "BUILD SUCCEEDED" ios.log
+      - name: Build macOS
+        working-directory: apps/apple
+        run: |
+          set -o pipefail
+          xcodebuild -project Fasila.xcodeproj -scheme Fasila-macOS -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO build | tee macos.log | grep -E "error:|BUILD" || true
+          grep -q "BUILD SUCCEEDED" macos.log
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-build-logs
+          path: apps/apple/*.log
