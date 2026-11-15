@@ -86,9 +86,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
-      - name: SDK platforms
-        run: sdkmanager "platforms;android-37.0" "platforms;android-35" "build-tools;35.0.0"
+      - name: SDK platforms (runner's preinstalled SDK)
+        run: |
+          SM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin | sort -V | tail -1)/sdkmanager
+          yes | "$SM" --licenses > /dev/null || true
+          "$SM" "platforms;android-37.0" "platforms;android-35" "build-tools;35.0.0"
+          echo "sdk.dir=$ANDROID_HOME" > apps/android/local.properties
       - run: cargo install cargo-ndk --locked
       - name: Native library + Kotlin bindings (x86_64)
         run: ABIS=x86_64 PROFILE=debug ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME bash scripts/build-android.sh
