@@ -80,7 +80,9 @@ fun DayStrip(
     // Open scrolled to "now".
     LaunchedEffect(state.date) {
         val f = ((state.now - start).toFloat() / (end - start)).coerceIn(0f, 1f)
-        val px = with(density) { stripWidth.toPx() } * (if (rtl) 1 - f else f)
+        // Scroll offset counts from the start edge (the right edge in RTL), and the strip is
+        // drawn mirrored in RTL, so "now" is always f of the way from the start.
+        val px = with(density) { stripWidth.toPx() } * f
         scroll.scrollTo((px - 160 * density.density).toInt().coerceAtLeast(0))
     }
 
